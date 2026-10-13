@@ -1,0 +1,244 @@
+import type { ReactNode } from "react";
+import { motion } from "motion/react";
+import { useStore, streakNow, type Tab } from "../state/store";
+import { KidAvatar, Lantern, Tamr } from "../art/Characters";
+import { FootprintsToThawr, MiniScene } from "../art/scenes/Scenes";
+import { ERAS } from "../content/data";
+import { IconBeads, IconCheck, IconHeart, IconHome, IconLock, IconMap, IconPlay, IconSprout, IconBook } from "../art/Icons";
+import { Button, ProgressBar } from "../components/ui";
+import { hijrahSteps, HIJRAH_TITLE } from "../content/hijrah";
+import { sfx } from "../lib/sound";
+
+const NAMES = { ayaan: "Ayaan", zara: "Zara" } as const;
+
+export function TopBar() {
+  const s = useStore();
+  const streak = streakNow(s);
+  return (
+    <div className="flex items-center gap-3 px-5 pt-12 pb-3">
+      <KidAvatar kind={s.childId} size={46} />
+      <div className="min-w-0 flex-1">
+        <div className="text-[13px] text-muted">Assalamu alaikum,</div>
+        <div className="truncate font-display text-xl leading-tight">{NAMES[s.childId]}!</div>
+      </div>
+      <div className="flex items-center gap-1 rounded-full bg-cream py-1 pr-3.5 pl-2 shadow-sm" aria-label={`${streak} day streak`}>
+        <Lantern size={18} lit />
+        <span className="font-display text-lg leading-none">{streak}</span>
+      </div>
+      <button aria-label="Grown-ups area" onClick={() => s.go("parentGate")} className="grid h-11 w-11 place-items-center rounded-full bg-cream text-muted shadow-sm">
+        <IconLock size={20} />
+      </button>
+    </div>
+  );
+}
+
+function WeekLanterns() {
+  const s = useStore();
+  const todayLit = s.goals.lesson || s.goals.dhikr;
+  const days = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date();
+    d.setDate(d.getDate() - (6 - i));
+    return d;
+  });
+  return (
+    <div className="rounded-3xl bg-night p-4 text-cream pattern-dark">
+      <div className="mb-3 flex items-center justify-between">
+        <div className="font-display text-lg">Your lanterns this week</div>
+        <div className="text-xs text-saffron">{streakNow(s)} days of light</div>
+      </div>
+      <div className="flex justify-between">
+        {days.map((d, i) => {
+          const isToday = i === 6;
+          const lit = isToday ? todayLit : true;
+          const friday = d.getDay() === 5;
+          return (
+            <div key={i} className="flex w-[13%] flex-col items-center gap-1">
+              <motion.div animate={isToday && lit ? { scale: [1, 1.25, 1] } : {}} transition={{ duration: 0.6 }}>
+                <Lantern lit={lit} size={isToday ? 26 : 22} pulse={isToday && lit} />
+              </motion.div>
+              <span className={`whitespace-nowrap ${isToday ? "text-[10px] font-extrabold text-saffron" : "text-[11px] text-white/60"}`}>{isToday ? "Today" : d.toLocaleDateString("en", { weekday: "short" }).slice(0, 2)}</span>
+              {friday && <span className="rounded-full bg-terracotta px-1.5 text-[9px] leading-4">New</span>}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function Goals() {
+  const s = useStore();
+  const items: { key: keyof typeof s.goals; label: string; icon: ReactNode; tab?: Tab; color: string }[] = [
+    { key: "lesson", label: "Story", icon: <IconBook size={22} />, color: "#D9693B" },
+    { key: "dhikr", label: "Dhikr", icon: <IconBeads size={22} />, tab: "dhikr", color: "#1F8A85" },
+    { key: "deed", label: "Good deed", icon: <IconHeart size={22} />, color: "#E86A7F" },
+  ];
+  const n = Object.values(s.goals).filter(Boolean).length;
+  return (
+    <div className="rounded-3xl bg-cream p-4 shadow-sm">
+      <div className="mb-3 flex items-center justify-between">
+        <div className="font-display text-lg">Today's little plus</div>
+        <div className="text-sm text-muted">{n} of 3</div>
+      </div>
+      <div className="grid grid-cols-3 gap-2.5">
+        {items.map((it) => {
+          const done = s.goals[it.key];
+          return (
+            <button
+              key={it.key}
+              onClick={() => {
+                sfx.tap();
+                if (it.key === "lesson") s.go("lesson");
+                else if (it.tab) s.setTab(it.tab);
+                else s.showToast(s.liveIt === "committed" ? "Waiting for a grown-up to say yes!" : "Finish today's story to get your good-deed challenge!");
+              }}
+              className="flex flex-col items-center gap-1.5 rounded-2xl p-3"
+              style={{ background: done ? it.color : `${it.color}18`, color: done ? "#FFF8EC" : it.color }}
+            >
+              <div className="grid h-9 w-9 place-items-center rounded-full" style={{ background: done ? "rgba(255,255,255,.2)" : `${it.color}22` }}>
+                {done ? <IconCheck size={20} /> : it.icon}
+              </div>
+              <span className="font-display text-sm leading-none">{it.label}</span>
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function ContinueCard() {
+  const s = useStore();
+  const total = hijrahSteps.length - 1;
+  const progress = s.lessonDone ? 1 : s.lessonStep / total;
+  return (
+    <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} className="overflow-hidden rounded-3xl bg-night text-cream shadow-lg">
+      <div className="relative h-44 @2xl:h-56">
+        <FootprintsToThawr show={10} />
+        <div className="absolute inset-0 bg-gradient-to-t from-night via-night/20 to-transparent" />
+        <div className="absolute left-4 top-4 rounded-full bg-saffron px-3 py-1 font-display text-xs text-ink">Episode 5 · The Hijrah</div>
+        <div className="absolute right-3 bottom-0 animate-bob">
+          <Tamr size={78} mood={s.lessonDone ? "cheer" : "wow"} />
+        </div>
+      </div>
+      <div className="space-y-3 p-4 pt-1">
+        <div>
+          <div className="font-display text-2xl leading-tight">{HIJRAH_TITLE}</div>
+          <div className="text-sm text-white/65">Today's lesson: trust in Allah · 6 min</div>
+        </div>
+        <ProgressBar value={progress} dark />
+        <Button variant="saffron" className="flex w-full items-center justify-center gap-2" onClick={() => s.go("lesson")}>
+          <IconPlay size={20} /> {s.lessonDone ? "Play again" : s.lessonStep > 0 ? "Continue" : "Start the journey"}
+        </Button>
+      </div>
+    </motion.div>
+  );
+}
+
+function SmallCards() {
+  const s = useStore();
+  return (
+    <div className="grid grid-cols-2 gap-3">
+      <button onClick={() => s.setTab("dhikr")} className="rounded-3xl bg-teal p-4 text-left text-cream shadow-sm">
+        <div className="arabic text-right text-2xl leading-tight">سُبْحَانَ اللَّهِ</div>
+        <div className="mt-2 font-display text-lg leading-tight">Daily dhikr</div>
+        <div className="text-xs text-white/75">{s.dhikrSets > 0 ? `${s.dhikrSets} set${s.dhikrSets > 1 ? "s" : ""} today` : "33 calm counts"}</div>
+      </button>
+      <button onClick={() => s.setTab("garden")} className="rounded-3xl bg-palm p-4 text-left text-cream shadow-sm">
+        <IconSprout size={30} />
+        <div className="mt-2 font-display text-lg leading-tight">My garden</div>
+        <div className="text-xs text-white/75">{s.plants.length} plants growing</div>
+      </button>
+    </div>
+  );
+}
+
+function TamrTip() {
+  return (
+    <div className="flex items-end gap-2">
+      <Tamr size={58} mood="think" />
+      <div className="flex-1 rounded-2xl rounded-bl-sm bg-cream p-3 text-sm shadow-sm">
+        <span className="font-display text-teal">Did you know?</span> The Islamic calendar starts from the year of the Hijrah, the journey you're about to take!
+      </div>
+    </div>
+  );
+}
+
+function UpNext() {
+  const s = useStore();
+  const upcoming = ERAS.flatMap((e) => e.units).filter((u) => u.state === "locked").slice(0, 3);
+  return (
+    <div className="rounded-3xl bg-cream p-4 shadow-sm">
+      <div className="mb-3 flex items-center justify-between">
+        <div className="font-display text-lg">Coming up on the journey</div>
+        <button onClick={() => s.setTab("journey")} className="text-sm font-bold text-teal">See map</button>
+      </div>
+      <div className="grid grid-cols-3 gap-2.5">
+        {upcoming.map((u, i) => (
+          <div key={u.id} className="overflow-hidden rounded-2xl bg-sand">
+            <div className="relative h-16">
+              <MiniScene kind={i === 0 ? "madinah" : i === 1 ? "quba" : "caravan"} />
+              <div className="absolute inset-0 grid place-items-center bg-night/35">
+                <IconLock size={18} className="text-cream" />
+              </div>
+            </div>
+            <div className="p-2">
+              <div className="font-display text-[13px] leading-tight">{u.title}</div>
+              <div className="text-[11px] text-muted">{i === 0 ? "This Friday" : `In ${i + 1} weeks`}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export function Home() {
+  return (
+    <div className="space-y-4 px-5 pb-6">
+      <div className="grid gap-4 @2xl:grid-cols-2">
+        <ContinueCard />
+        <div className="space-y-4">
+          <Goals />
+          <WeekLanterns />
+        </div>
+      </div>
+      <div className="grid gap-4 @2xl:grid-cols-2">
+        <SmallCards />
+        <TamrTip />
+      </div>
+      <UpNext />
+    </div>
+  );
+}
+
+export function BottomNav() {
+  const tab = useStore((s) => s.tab);
+  const setTab = useStore((s) => s.setTab);
+  const fresh = useStore((s) => s.plants.some((p) => p.fresh));
+  const items: { id: Tab; label: string; icon: ReactNode }[] = [
+    { id: "home", label: "Today", icon: <IconHome size={24} /> },
+    { id: "journey", label: "Journey", icon: <IconMap size={24} /> },
+    { id: "dhikr", label: "Dhikr", icon: <IconBeads size={24} /> },
+    { id: "garden", label: "Garden", icon: <IconSprout size={24} /> },
+  ];
+  return (
+    <nav className="flex justify-around border-t border-ink/8 bg-cream px-2 pt-2 pb-5" aria-label="Main">
+      {items.map((it) => (
+        <button
+          key={it.id}
+          onClick={() => {
+            sfx.tap();
+            setTab(it.id);
+          }}
+          aria-current={tab === it.id ? "page" : undefined}
+          className={`relative flex w-20 flex-col items-center gap-0.5 rounded-2xl py-1.5 transition ${tab === it.id ? "bg-saffron/20 text-terracotta-d" : "text-muted"}`}
+        >
+          {it.icon}
+          <span className="font-display text-[13px]">{it.label}</span>
+          {it.id === "garden" && fresh && <span className="absolute right-5 top-1 h-2.5 w-2.5 rounded-full bg-rose ring-2 ring-cream" />}
+        </button>
+      ))}
+    </nav>
+  );
+}
