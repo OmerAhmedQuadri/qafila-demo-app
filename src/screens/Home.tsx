@@ -15,7 +15,7 @@ export function TopBar() {
   const s = useStore();
   const streak = streakNow(s);
   return (
-    <div className="flex items-center gap-3 px-5 pt-12 pb-3">
+    <div className="flex items-center gap-3 px-5 pt-12 pb-3 land:pt-6">
       <KidAvatar kind={s.childId} size={46} />
       <div className="min-w-0 flex-1">
         <div className="text-[13px] text-muted">Assalamu alaikum,</div>
@@ -113,7 +113,7 @@ function ContinueCard() {
   const progress = s.lessonDone ? 1 : s.lessonStep / total;
   return (
     <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} className="overflow-hidden rounded-3xl bg-night text-cream shadow-lg">
-      <div className="relative h-44 @2xl:h-56">
+      <div className="relative h-44 @2xl:h-64 land:h-40!">
         <FootprintsToThawr show={10} />
         <div className="absolute inset-0 bg-gradient-to-t from-night via-night/20 to-transparent" />
         <div className="absolute left-4 top-4 rounded-full bg-saffron px-3 py-1 font-display text-xs text-ink">Episode 5 · The Hijrah</div>
@@ -176,7 +176,7 @@ function UpNext() {
       <div className="grid grid-cols-3 gap-2.5">
         {upcoming.map((u, i) => (
           <div key={u.id} className="overflow-hidden rounded-2xl bg-sand">
-            <div className="relative h-16">
+            <div className="relative h-16 @2xl:h-24">
               <MiniScene kind={i === 0 ? "madinah" : i === 1 ? "quba" : "caravan"} />
               <div className="absolute inset-0 grid place-items-center bg-night/35">
                 <IconLock size={18} className="text-cream" />
@@ -223,7 +223,18 @@ export function BottomNav() {
     { id: "garden", label: "Garden", icon: <IconSprout size={24} /> },
   ];
   return (
-    <nav className="flex justify-around border-t border-ink/8 bg-cream px-2 pt-2 pb-5" aria-label="Main">
+    <nav
+      className="relative flex justify-around border-t border-ink/8 bg-cream px-2 pt-2 pb-5 land:order-first land:w-28 land:shrink-0 land:flex-col land:justify-center land:gap-3 land:border-t-0 land:border-r land:px-3 land:py-6"
+      aria-label="Main"
+    >
+      <div className="absolute top-6 left-1/2 hidden -translate-x-1/2 land:block" aria-hidden="true">
+        <svg viewBox="0 0 64 64" width="44" height="44">
+          <rect width="64" height="64" rx="18" fill="#141B3D" />
+          <path d="M32 9l5.6 13.4L51 20.6 41.4 31.2 48.7 44 34.8 39.6 32 54 29.2 39.6 15.3 44l7.3-12.8L13 20.6l13.4 1.8z" fill="#F5B53F" />
+          <circle cx="32" cy="31" r="7" fill="#141B3D" />
+          <path d="M34.5 26.5a5.5 5.5 0 1 0 0 9 4.4 4.4 0 1 1 0-9z" fill="#F5B53F" />
+        </svg>
+      </div>
       {items.map((it) => (
         <button
           key={it.id}
@@ -232,7 +243,7 @@ export function BottomNav() {
             setTab(it.id);
           }}
           aria-current={tab === it.id ? "page" : undefined}
-          className={`relative flex w-20 flex-col items-center gap-0.5 rounded-2xl py-1.5 transition ${tab === it.id ? "bg-saffron/20 text-terracotta-d" : "text-muted"}`}
+          className={`relative flex w-20 flex-col items-center gap-0.5 rounded-2xl py-1.5 transition land:w-full land:py-3 ${tab === it.id ? "bg-saffron/20 text-terracotta-d" : "text-muted"}`}
         >
           {it.icon}
           <span className="font-display text-[13px]">{it.label}</span>

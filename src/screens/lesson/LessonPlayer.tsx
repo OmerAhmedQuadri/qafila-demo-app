@@ -49,15 +49,18 @@ function CompleteStep() {
   ];
 
   return (
-    <div className="relative flex h-full flex-col items-center overflow-y-auto px-5 pt-2 pb-6 text-center no-scrollbar">
+    <div className="relative h-full overflow-y-auto px-5 pt-2 pb-6 text-center no-scrollbar">
       <Confetti fire={fire} />
+      <div className="mx-auto flex max-w-md flex-col items-center land:grid land:min-h-full land:max-w-none land:grid-cols-2 land:content-center land:items-center land:gap-x-10 land:gap-y-5">
+      <div className="flex flex-col items-center land:col-start-1 land:row-start-1">
       <motion.div initial={{ scale: 0.4, rotate: -10 }} animate={{ scale: 1, rotate: 0 }} transition={{ type: "spring", stiffness: 140, damping: 10 }}>
         <Tamr size={140} mood="cheer" />
       </motion.div>
-      <h2 className="font-display text-4xl leading-tight text-saffron">Masha'Allah!</h2>
+      <h2 className="font-display text-4xl leading-tight text-saffron @2xl:text-5xl">Masha'Allah!</h2>
       <p className="font-display text-lg text-cream">You finished “{HIJRAH_TITLE}”</p>
+      </div>
 
-      <div className="mt-5 w-full max-w-md space-y-3">
+      <div className="mt-5 w-full space-y-3 land:col-start-2 land:row-start-1 land:mt-0">
         {rewards.map((r, i) => (
           <motion.div
             key={r.key}
@@ -76,14 +79,15 @@ function CompleteStep() {
         ))}
       </div>
 
-      <motion.div className="mt-5 w-full max-w-md" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 2.2 }}>
+      <motion.div className="mt-5 w-full land:col-start-2 land:row-start-2 land:mt-0" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 2.2 }}>
         <div className="mb-2 text-left text-[11px] font-extrabold tracking-[.2em] text-saffron uppercase">What you'll carry with you</div>
         <AyahCard compact />
       </motion.div>
 
-      <div className="mt-6 grid w-full max-w-md grid-cols-2 gap-3">
+      <div className="mt-6 grid w-full grid-cols-2 gap-3 land:col-start-1 land:row-start-2 land:mt-0 land:self-start">
         <Button variant="ghost" onClick={() => s.openTab("home")}>Back to Today</Button>
         <Button variant="saffron" onClick={() => s.openTab("garden")}>See my garden</Button>
+      </div>
       </div>
     </div>
   );
@@ -144,7 +148,7 @@ export function LessonPlayer() {
 
   return (
     <div className="pattern-dark relative flex h-full flex-col bg-night">
-      <div className="flex items-center gap-3 px-4 pt-12 pb-3">
+      <div className="flex items-center gap-3 px-4 pt-12 pb-3 land:pt-5">
         <button aria-label="Leave lesson" onClick={() => (cur.kind === "complete" ? s.openTab("home") : setConfirm(true))} className="grid h-10 w-10 place-items-center rounded-full bg-white/10 text-cream">
           <IconX size={20} />
         </button>

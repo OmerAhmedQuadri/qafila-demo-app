@@ -12,16 +12,16 @@ export function ParentGate() {
   const openTab = useStore((s) => s.openTab);
   const [held, setHeld] = useState(false);
   return (
-    <div className="pattern-light relative flex h-full flex-col items-center bg-sand px-6 pt-14 text-center">
-      <button aria-label="Back" onClick={() => openTab("home")} className="absolute left-4 top-12 grid h-10 w-10 place-items-center rounded-full bg-cream shadow-sm">
+    <div className="pattern-light relative flex h-full flex-col items-center bg-sand px-6 pt-14 text-center land:pt-6">
+      <button aria-label="Back" onClick={() => openTab("home")} className="absolute left-4 top-12 grid h-10 w-10 land:top-5 place-items-center rounded-full bg-cream shadow-sm">
         <IconBack size={20} />
       </button>
-      <div className="mt-10 grid h-16 w-16 place-items-center rounded-full bg-night text-saffron">
+      <div className="mt-10 grid h-16 w-16 place-items-center rounded-full bg-night text-saffron land:mt-4">
         <IconLock size={30} />
       </div>
       <h1 className="mt-4 font-display text-3xl">For grown-ups</h1>
       <p className="mt-1 max-w-xs text-muted">Press and hold for two seconds. This keeps little fingers out of settings.</p>
-      <div className="mt-10">
+      <div className="mt-10 land:mt-6">
         <HoldButton
           label="Press and hold to open the parent area"
           ms={1800}
@@ -37,7 +37,7 @@ export function ParentGate() {
           </motion.div>
         </HoldButton>
       </div>
-      <p className="mt-auto mb-10 text-xs text-muted">In the full app this also asks for the parent's PIN or fingerprint.</p>
+      <p className="mt-auto mb-10 text-xs text-muted land:mb-5">In the full app this also asks for the parent's PIN or fingerprint.</p>
     </div>
   );
 }
@@ -111,7 +111,7 @@ export function ParentDashboard() {
 
   return (
     <div className="h-full overflow-y-auto bg-sand pb-10 no-scrollbar">
-      <div className="bg-night px-5 pt-12 pb-6 text-cream pattern-dark">
+      <div className="bg-night px-5 pt-12 pb-6 text-cream pattern-dark land:pt-6">
         <div className="flex items-center justify-between">
           <button onClick={() => s.openTab("home")} className="flex items-center gap-1.5 rounded-full bg-white/10 py-2 pr-4 pl-3 text-sm">
             <IconBack size={16} /> Back to {name}'s app

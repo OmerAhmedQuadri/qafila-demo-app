@@ -31,9 +31,9 @@ export function Dhikr() {
   };
 
   return (
-    <div className="relative min-h-full bg-gradient-to-b from-sand to-cream px-5 pb-8">
+    <div className="relative min-h-full px-5 pb-8">
       <div className="pt-1">
-        <h1 className="font-display text-3xl">Dhikr</h1>
+        <h1 className="font-display text-3xl @2xl:text-4xl">Dhikr</h1>
         <p className="flex items-center gap-1.5 text-sm text-muted">
           <IconHeart size={16} className="text-rose" /> Just between you and Allah. No points, no scores.
         </p>
@@ -68,7 +68,7 @@ export function Dhikr() {
           </button>
         </motion.div>
 
-        <div className="relative mx-auto aspect-square w-full max-w-[320px]">
+        <div className="relative mx-auto aspect-square w-full max-w-[320px] @2xl:max-w-[360px]">
           <svg viewBox="0 0 300 300" className="absolute inset-0 h-full w-full" aria-hidden="true">
             <circle cx="150" cy="150" r={R} fill="none" stroke="#E2CFA8" strokeWidth="2" strokeDasharray="2 6" />
             {beads.map((b, i) => {

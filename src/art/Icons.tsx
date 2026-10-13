@@ -25,3 +25,4 @@ export const IconChat = ({ size, ...p }: P) => (<svg {...base(size)} {...p}><pat
 export const IconRefresh = ({ size, ...p }: P) => (<svg {...base(size)} {...p}><path d="M20 11a8 8 0 0 0-14.6-4.4L4 8M4 4v4h4M4 13a8 8 0 0 0 14.6 4.4L20 16M20 20v-4h-4" /></svg>);
 export const IconStudio = ({ size, ...p }: P) => (<svg {...base(size)} {...p}><rect x="3" y="5" width="18" height="12" rx="2" /><path d="M8 21h8M12 17v4M10 9l4 2-4 2z" /></svg>);
 export const IconStar = ({ size, ...p }: P) => (<svg {...base(size)} fill="currentColor" stroke="none" {...p}><path d="m12 2.8 2.7 5.6 6.1.8-4.4 4.3 1 6.1L12 16.7l-5.4 2.9 1-6.1-4.4-4.3 6.1-.8z" /></svg>);
+export const IconRotate = ({ size, ...p }: P) => (<svg {...base(size)} {...p}><rect x="4" y="7" width="16" height="10" rx="2" /><path d="M8 3.5A8.5 8.5 0 0 1 19.5 6M16 20.5A8.5 8.5 0 0 1 4.5 18" /><path d="M19.5 2.5V6H16M4.5 21.5V18H8" /></svg>);

@@ -2,49 +2,55 @@ import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "re
 import { AnimatePresence, motion } from "motion/react";
 import { useStore, type Screen, type Tab } from "../state/store";
 import { Logo } from "../art/Characters";
-import { IconRefresh, IconSpeaker, IconMute, IconX, IconSparkle } from "../art/Icons";
+import { IconRefresh, IconSpeaker, IconMute, IconX, IconSparkle, IconRotate } from "../art/Icons";
 import { stopAllSound } from "../lib/sound";
 import { stopSpeaking } from "../lib/narrate";
 
-const SIZES = { phone: { w: 390, h: 844 }, tablet: { w: 820, h: 1180 } } as const;
+const SIZES = {
+  phone: { w: 390, h: 844, bezel: 14, outer: 58, inner: 44 },
+  tabletLand: { w: 1180, h: 820, bezel: 20, outer: 42, inner: 24 },
+  tabletPort: { w: 820, h: 1180, bezel: 20, outer: 42, inner: 24 },
+} as const;
 
-/** Scales a fixed-size device to fit the available space. */
+/**
+ * Shows the app inside a phone/tablet frame, scaled to fit the stage.
+ * The outer box takes the *scaled* size, so the browser lays out what you see
+ * (scaling with transform alone keeps the full-size box in the layout and pushes the frame off-screen).
+ */
 export function DeviceFrame({ children }: { children: ReactNode }) {
   const device = useStore((s) => s.device);
+  const portrait = useStore((s) => s.tabletPortrait);
+  const d = device === "phone" ? SIZES.phone : portrait ? SIZES.tabletPort : SIZES.tabletLand;
+  const fw = d.w + d.bezel * 2;
+  const fh = d.h + d.bezel * 2;
   const wrap = useRef<HTMLDivElement>(null);
-  const [scale, setScale] = useState(1);
-  const { w, h } = SIZES[device];
-  const bezel = device === "phone" ? 14 : 22;
+  const [scale, setScale] = useState(0);
 
   useLayoutEffect(() => {
     const el = wrap.current;
     if (!el) return;
     const fit = () => {
-      const r = el.getBoundingClientRect();
-      setScale(Math.min((r.width - 32) / (w + bezel * 2), (r.height - 32) / (h + bezel * 2), 1.1));
+      const pad = 20;
+      const sc = Math.min((el.clientWidth - pad * 2) / fw, (el.clientHeight - pad * 2) / fh, 1);
+      setScale(Math.max(0.2, sc));
     };
     fit();
     const ro = new ResizeObserver(fit);
     ro.observe(el);
     return () => ro.disconnect();
-  }, [w, h, bezel]);
+  }, [fw, fh]);
 
   return (
-    <div ref={wrap} className="relative grid h-full w-full place-items-center overflow-hidden">
-      <div
-        className="relative shrink-0 bg-[#0B0E22] shadow-[0_40px_120px_rgba(0,0,0,.55),0_0_0_2px_rgba(255,255,255,.08)]"
-        style={{
-          width: w + bezel * 2,
-          height: h + bezel * 2,
-          padding: bezel,
-          borderRadius: device === "phone" ? 58 : 44,
-          transform: `scale(${scale})`,
-          transformOrigin: "center",
-        }}
-      >
-        <div className="relative h-full w-full overflow-hidden bg-cream" style={{ borderRadius: device === "phone" ? 44 : 26 }}>
-          {children}
-          {device === "phone" && <div className="pointer-events-none absolute left-1/2 top-2.5 z-[80] h-7 w-28 -translate-x-1/2 rounded-full bg-[#0B0E22]" />}
+    <div ref={wrap} className="flex h-full w-full items-center justify-center overflow-hidden">
+      <div className="relative shrink-0" style={{ width: fw * scale, height: fh * scale, opacity: scale ? 1 : 0 }}>
+        <div
+          className="absolute left-0 top-0 bg-[#0B0E22] shadow-[0_40px_120px_rgba(0,0,0,.55),0_0_0_2px_rgba(255,255,255,.08)]"
+          style={{ width: fw, height: fh, padding: d.bezel, borderRadius: d.outer, transform: `scale(${scale})`, transformOrigin: "0 0" }}
+        >
+          <div className="relative h-full w-full overflow-hidden bg-cream" style={{ borderRadius: d.inner }}>
+            {children}
+            {device === "phone" && <div className="pointer-events-none absolute left-1/2 top-2.5 z-[80] h-7 w-28 -translate-x-1/2 rounded-full bg-[#0B0E22]" />}
+          </div>
         </div>
       </div>
     </div>
@@ -116,17 +122,30 @@ function TourList({ onPick }: { onPick?: () => void }) {
 function Controls({ showDevice = true }: { showDevice?: boolean }) {
   const device = useStore((s) => s.device);
   const setDevice = useStore((s) => s.setDevice);
+  const portrait = useStore((s) => s.tabletPortrait);
+  const togglePortrait = useStore((s) => s.toggleTabletPortrait);
   const sound = useStore((s) => s.sound);
   const toggleSound = useStore((s) => s.toggleSound);
   const reset = useStore((s) => s.reset);
   return (
     <div className="space-y-3">
-      <div className={`${showDevice ? "flex" : "hidden"} rounded-2xl bg-white/8 p-1`}>
-        {(["phone", "tablet"] as const).map((d) => (
-          <button key={d} onClick={() => setDevice(d)} className={`flex-1 rounded-xl py-2 font-display capitalize ${device === d ? "bg-cream text-ink" : "text-white/70"}`}>
-            {d}
-          </button>
-        ))}
+      <div className={`${showDevice ? "flex" : "hidden"} gap-2`}>
+        <div className="flex flex-1 rounded-2xl bg-white/8 p-1">
+          {(["phone", "tablet"] as const).map((d) => (
+            <button key={d} onClick={() => setDevice(d)} className={`flex-1 rounded-xl py-2 font-display capitalize ${device === d ? "bg-cream text-ink" : "text-white/70"}`}>
+              {d}
+            </button>
+          ))}
+        </div>
+        <button
+          onClick={togglePortrait}
+          disabled={device !== "tablet"}
+          aria-label={portrait ? "Show tablet in landscape" : "Show tablet in portrait"}
+          title={portrait ? "Rotate to landscape" : "Rotate to portrait"}
+          className="grid w-12 place-items-center rounded-2xl bg-white/8 text-white/80 transition hover:bg-white/12 disabled:opacity-30"
+        >
+          <IconRotate size={20} className={portrait ? "rotate-90 transition" : "transition"} />
+        </button>
       </div>
       <div className="flex gap-2">
         <button onClick={toggleSound} className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-white/8 py-2.5 text-sm text-white/80 hover:bg-white/12">

@@ -149,6 +149,34 @@ function Collection() {
   );
 }
 
+/** Tablet-only list of plants, newest first, with the reason each one grew. */
+function GrowthList() {
+  const plants = useStore((s) => s.plants);
+  return (
+    <section className="hidden rounded-3xl bg-cream p-4 shadow-sm @2xl:block">
+      <h2 className="font-display text-lg">What grew, and why</h2>
+      <ul className="mt-3 space-y-2">
+        {[...plants].reverse().map((p) => (
+          <li key={p.id} className="flex items-center gap-3 rounded-2xl bg-sand/70 p-2.5">
+            <div className="grid h-12 w-12 shrink-0 place-items-center overflow-hidden rounded-xl bg-[#DDEFC9]">
+              <PlantArt kind={p.kind} size={34} />
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-2 font-display leading-tight">
+                {p.label}
+                {p.fresh && <span className="rounded-full bg-saffron px-2 text-[11px] text-ink">New</span>}
+              </div>
+              <div className="text-sm leading-snug text-muted">
+                <Rich text={p.reason} />
+              </div>
+            </div>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
 export function Garden() {
   const [view, setView] = useState<"garden" | "cards">("garden");
   const plants = useStore((s) => s.plants);
@@ -156,10 +184,10 @@ export function Garden() {
   return (
     <div className="min-h-full bg-sand px-5 pb-8">
       <div className="pt-1">
-        <h1 className="font-display text-3xl">My Garden of Good</h1>
+        <h1 className="font-display text-3xl @2xl:text-4xl">My Garden of Good</h1>
         <p className="text-sm text-muted">Every lesson, dhikr and good deed grows something beautiful.</p>
       </div>
-      <div className="my-4 flex rounded-2xl bg-cream p-1 shadow-sm">
+      <div className="my-4 flex rounded-2xl bg-cream p-1 shadow-sm @2xl:max-w-md">
         {(["garden", "cards"] as const).map((v) => (
           <button
             key={v}
@@ -173,8 +201,17 @@ export function Garden() {
           </button>
         ))}
       </div>
-      {view === "garden" ? <GardenScene /> : <Collection />}
-      {view === "garden" && <p className="mt-3 text-center text-sm text-muted">Tap a plant to remember how it grew.</p>}
+      {view === "garden" ? (
+        <div className="grid gap-4 land:grid-cols-[1.55fr_1fr] land:items-start">
+          <div>
+            <GardenScene />
+            <p className="mt-3 text-center text-sm text-muted">Tap a plant to remember how it grew.</p>
+          </div>
+          <GrowthList />
+        </div>
+      ) : (
+        <Collection />
+      )}
     </div>
   );
 }

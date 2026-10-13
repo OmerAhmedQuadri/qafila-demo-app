@@ -7,6 +7,7 @@ import { MiniScene } from "../art/scenes/Scenes";
 import { IconCheck, IconLock } from "../art/Icons";
 import { Button, Sheet } from "../components/ui";
 import { sfx } from "../lib/sound";
+import { useOrient } from "../components/orient";
 
 function UnitGlyph({ icon, color = "#2B2140" }: { icon: Unit["icon"]; color?: string }) {
   const g: Record<Unit["icon"], ReactNode> = {
@@ -31,23 +32,27 @@ export function Journey() {
     return u.state;
   };
 
-  const OFF = [0, -70, 0, 70];
+  const { w } = useOrient();
+  const amp = w >= 700 ? 150 : 70; // wider zigzag on tablets
+  const OFF = [0, -amp, 0, amp];
   const ROW = 160;
   let idx = 0;
   return (
     <div className="pattern-light relative min-h-full bg-sand pb-10">
       <div className="px-5 pt-1 pb-2">
-        <h1 className="font-display text-3xl">The Seerah Journey</h1>
+        <h1 className="font-display text-3xl @2xl:text-4xl">The Seerah Journey</h1>
         <p className="text-sm text-muted">Explorers track · ages 8–10 · 5 of 42 stories</p>
       </div>
       {ERAS.map((era) => (
         <section key={era.id} className="relative">
-          <div className="mx-5 mt-4 overflow-hidden rounded-3xl shadow-md">
-            <div className="relative h-24">
-              <MiniScene align="bottom" kind={era.id === "makkah" ? "makkah" : era.id === "hijrah" ? "caravan" : "madinah"} />
-              <div className="absolute inset-0 bg-gradient-to-r from-night/85 to-transparent" />
+          <div className="mx-5 mt-4 overflow-hidden rounded-3xl bg-night shadow-md">
+            <div className="relative h-24 @2xl:h-32">
+              {/* 4:3 artwork on the right, fading in from the title, so it is never cropped to a strip */}
+              <div className="absolute inset-y-0 right-0 aspect-[4/3] h-full [mask-image:linear-gradient(to_right,transparent,black_45%)]">
+                <MiniScene kind={era.id === "makkah" ? "makkah" : era.id === "hijrah" ? "caravan" : "madinah"} />
+              </div>
               <div className="absolute inset-y-0 left-4 flex flex-col justify-center text-cream">
-                <div className="font-display text-2xl leading-none">{era.name}</div>
+                <div className="font-display text-2xl leading-none @2xl:text-3xl">{era.name}</div>
                 <div className="text-xs text-white/75">{era.subtitle}</div>
               </div>
             </div>

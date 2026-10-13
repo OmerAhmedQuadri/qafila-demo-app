@@ -48,6 +48,7 @@ interface State {
   sound: boolean;
   narration: boolean;
   device: "phone" | "tablet";
+  tabletPortrait: boolean;
   toast: string | null;
 
   go: (screen: Screen) => void;
@@ -64,6 +65,7 @@ interface State {
   toggleSound: () => void;
   toggleNarration: () => void;
   setDevice: (d: "phone" | "tablet") => void;
+  toggleTabletPortrait: () => void;
   showToast: (msg: string | null) => void;
   reset: () => void;
 }
@@ -94,6 +96,7 @@ const initial = {
   sound: true,
   narration: false,
   device: "phone" as const,
+  tabletPortrait: false,
   toast: null as string | null,
 };
 
@@ -209,8 +212,9 @@ export const useStore = create<State>()(
       toggleSound: () => set({ sound: !get().sound }),
       toggleNarration: () => set({ narration: !get().narration }),
       setDevice: (device) => set({ device }),
+      toggleTabletPortrait: () => set({ tabletPortrait: !get().tabletPortrait }),
       showToast: (toast) => set({ toast }),
-      reset: () => set({ ...initial, device: get().device, screen: "splash" }),
+      reset: () => set({ ...initial, device: get().device, tabletPortrait: get().tabletPortrait, screen: "splash" }),
     }),
     {
       name: "qafila-demo-v1",

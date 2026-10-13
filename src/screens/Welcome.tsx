@@ -37,7 +37,7 @@ export function Splash() {
           style={{ left: `${(i * 37) % 100}%`, top: `${(i * 53) % 45}%`, animationDelay: `${(i % 7) * 0.4}s` }}
         />
       ))}
-      <motion.div className="relative z-10 mt-[18%] flex flex-col items-center px-6 text-center" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }}>
+      <motion.div className="relative z-10 mt-[18%] flex flex-col items-center px-6 text-center land:mt-[5%]" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }}>
         <Logo size={64} light />
         <p className="mt-6 max-w-xs font-display text-2xl leading-snug">
           Join the caravan. <br />
@@ -51,6 +51,7 @@ export function Splash() {
         </div>
       </motion.div>
       <div className="absolute inset-x-0 bottom-0 z-20 p-6 pb-8">
+        <div className="mx-auto max-w-md">
         <Button
           variant="saffron"
           className="w-full text-xl"
@@ -62,6 +63,7 @@ export function Splash() {
           Bismillah, let's begin
         </Button>
         <p className="mt-3 text-center text-[11px] font-bold text-white/60">Working name · concept demo with sample content</p>
+        </div>
       </div>
     </div>
   );
@@ -76,7 +78,7 @@ export function Profiles() {
     { id: "zara" as const, name: "Zara", age: 8 },
   ];
   return (
-    <div className="pattern-light relative flex h-full flex-col bg-sand px-6 pt-16 pb-8">
+    <div className="pattern-light relative flex h-full flex-col bg-sand px-6 pt-16 pb-8 @2xl:px-[12%] land:px-[20%] land:pt-10">
       <div className="flex items-center gap-3">
         <Tamr size={64} mood="happy" />
         <div className="rounded-2xl rounded-bl-sm bg-cream px-4 py-2 font-display text-lg shadow-sm">Assalamu alaikum! Who's travelling today?</div>

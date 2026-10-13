@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+/* "land:" = the app screen is landscape (tablet held sideways, or the landscape tablet frame) */
+@custom-variant land (&:where([data-orient="landscape"], [data-orient="landscape"] *));
+
 @theme {
   --font-display: "Baloo 2", "Nunito", system-ui, sans-serif;
   --font-body: "Nunito", system-ui, sans-serif;

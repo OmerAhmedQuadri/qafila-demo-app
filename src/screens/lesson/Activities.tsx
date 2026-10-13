@@ -7,6 +7,7 @@ import { Tamr } from "../../art/Characters";
 import { Button, HoldButton, Rich } from "../../components/ui";
 import { haptic, sfx } from "../../lib/sound";
 import { IconCheck, IconHeart, IconSparkle } from "../../art/Icons";
+import { useOrient } from "../../components/orient";
 
 /* ---------- shared feedback footer ---------- */
 function Feedback({ ok, title, text, onNext, cta = "Continue" }: { ok: boolean; title: string; text?: string; onNext?: () => void; cta?: string }) {
@@ -39,8 +40,8 @@ function Header({ kicker, title, children }: { kicker: string; title: ReactNode;
   return (
     <div className="px-5">
       <div className="text-[11px] font-extrabold tracking-[.2em] text-saffron uppercase">{kicker}</div>
-      <h2 className="font-display text-[26px] leading-tight text-cream">{title}</h2>
-      {children && <p className="mt-1 text-[15px] leading-snug text-white/70">{children}</p>}
+      <h2 className="font-display text-[26px] leading-tight text-cream @2xl:text-4xl">{title}</h2>
+      {children && <p className="mt-1 text-[15px] leading-snug text-white/70 @2xl:text-lg">{children}</p>}
     </div>
   );
 }
@@ -190,14 +191,17 @@ export function QuizStep({ q, options, explain, n, total, onNext }: { q: string;
   const [picked, setPicked] = useState<number | null>(null);
   const [wrong, setWrong] = useState<number[]>([]);
   const correct = picked !== null && options[picked].correct;
+  const big = useOrient().w >= 672;
   return (
-    <div className="relative flex h-full flex-col">
+    <div className="relative flex h-full flex-col @2xl:justify-center @2xl:pb-24 land:grid land:grid-cols-2 land:content-center land:items-center land:gap-4">
+      <div>
       <Header kicker={`Quick check · ${n} of ${total}`} title={<Rich text={q} />} />
       <div className="mt-3 flex items-end gap-2 px-5">
-        <Tamr size={72} mood={correct ? "cheer" : "think"} />
-        <div className="mb-4 rounded-2xl rounded-bl-sm bg-white/10 px-3 py-2 text-sm text-white/80">{correct ? "Yes!! You remembered!" : "Hmm, think about the story…"}</div>
+        <Tamr size={big ? 120 : 72} mood={correct ? "cheer" : "think"} />
+        <div className="mb-4 rounded-2xl rounded-bl-sm bg-white/10 px-3 py-2 text-sm text-white/80 @2xl:text-base">{correct ? "Yes!! You remembered!" : "Hmm, think about the story…"}</div>
       </div>
-      <div className="mt-2 space-y-3 px-5">
+      </div>
+      <div className="mt-2 space-y-3 px-5 land:pl-0">
         {options.map((o, i) => {
           const isWrong = wrong.includes(i);
           const isRight = correct && picked === i;
@@ -218,7 +222,7 @@ export function QuizStep({ q, options, explain, n, total, onNext }: { q: string;
                   setWrong((w) => [...w, i]);
                 }
               }}
-              className={`chunky w-full px-5 py-4 text-left font-display text-[19px] ${isRight ? "bg-teal text-cream" : isWrong ? "bg-white/5 text-white/35 line-through" : "bg-cream text-ink"}`}
+              className={`chunky w-full px-5 py-4 text-left font-display text-[19px] @2xl:py-5 @2xl:text-[22px] ${isRight ? "bg-teal text-cream" : isWrong ? "bg-white/5 text-white/35 line-through" : "bg-cream text-ink"}`}
               style={{ ["--shade" as string]: isRight ? "#136663" : isWrong ? "transparent" : "#E2CFA8" }}
             >
               <Rich text={o.text} />
@@ -241,9 +245,9 @@ export function SequenceStep({ onNext }: { onNext: () => void }) {
   const [shake, setShake] = useState<string | null>(null);
   const done = placed.length === SEQUENCE.length;
   return (
-    <div className="relative flex h-full flex-col">
+    <div className="relative flex h-full flex-col @2xl:justify-center @2xl:pb-28">
       <Header kicker="Play" title="Put the journey in order">Tap the cards from first to last.</Header>
-      <div className="mt-4 grid grid-cols-4 gap-2 px-5">
+      <div className="mt-4 grid grid-cols-4 gap-2 px-5 @2xl:gap-3 land:mx-auto land:w-full land:max-w-2xl">
         {SEQUENCE.map((_, i) => {
           const id = placed[i];
           const item = SEQUENCE.find((x) => x.id === id);
@@ -261,7 +265,7 @@ export function SequenceStep({ onNext }: { onNext: () => void }) {
           );
         })}
       </div>
-      <div className="mt-5 grid grid-cols-2 gap-3 px-5">
+      <div className="mt-5 grid grid-cols-2 gap-3 px-5 land:grid-cols-4">
         {order.map((oi) => {
           const it = SEQUENCE[oi];
           const used = placed.includes(it.id);
@@ -286,8 +290,8 @@ export function SequenceStep({ onNext }: { onNext: () => void }) {
               className="chunky overflow-hidden bg-cream text-left"
               style={{ ["--shade" as string]: "#E2CFA8" }}
             >
-              <div className="h-20"><MiniScene kind={it.id} /></div>
-              <div className="p-2.5 font-display text-[15px] leading-tight text-ink">{it.label}</div>
+              <div className="h-20 @2xl:h-28"><MiniScene kind={it.id} /></div>
+              <div className="p-2.5 font-display text-[15px] leading-tight text-ink @2xl:p-3 @2xl:text-lg">{it.label}</div>
             </motion.button>
           );
         })}
@@ -333,7 +337,8 @@ export function ColourStep({ onNext }: { onNext: () => void }) {
   return (
     <div className="relative flex h-full flex-col">
       <Header kicker="Create" title="Colour Masjid Quba">The very first masjid, built when they arrived. Pick a colour, then tap a shape.</Header>
-      <div className="mx-4 mt-3 flex-1 overflow-hidden rounded-[1.75rem] bg-cream shadow-xl">
+      <div className="mt-3 flex min-h-0 flex-1 flex-col land:flex-row land:items-stretch land:gap-5 land:px-5 land:pb-5">
+      <div className="mx-4 min-h-0 flex-1 overflow-hidden rounded-[1.75rem] bg-cream shadow-xl land:mx-0">
         <svg viewBox="0 0 300 300" className="h-full w-full" role="img" aria-label="Colouring page of Masjid Quba with palm trees and a sunny sky">
           {REGIONS.map((r) => (
             <path
@@ -357,7 +362,8 @@ export function ColourStep({ onNext }: { onNext: () => void }) {
           ))}
         </svg>
       </div>
-      <div className="mt-3 flex items-center gap-2 overflow-x-auto px-5 py-1 no-scrollbar">
+      <div className="land:flex land:w-64 land:flex-col land:justify-center land:gap-5">
+      <div className="mt-3 flex items-center gap-2 overflow-x-auto px-5 py-1 no-scrollbar land:mt-0 land:grid land:grid-cols-5 land:gap-3 land:overflow-visible land:px-1">
         {PALETTE.map((c) => (
           <button
             key={c}
@@ -367,12 +373,12 @@ export function ColourStep({ onNext }: { onNext: () => void }) {
               sfx.soft();
               setColor(c);
             }}
-            className={`h-10 w-10 shrink-0 rounded-full shadow-[0_3px_0_rgba(0,0,0,.25)] transition ${c === color ? "scale-110 ring-4 ring-cream" : ""}`}
+            className={`h-10 w-10 shrink-0 rounded-full shadow-[0_3px_0_rgba(0,0,0,.25)] transition @2xl:h-12 @2xl:w-12 ${c === color ? "scale-110 ring-4 ring-cream" : ""}`}
             style={{ background: c }}
           />
         ))}
       </div>
-      <div className="flex gap-3 p-5 pt-3">
+      <div className="flex gap-3 p-5 pt-3 land:flex-col land:p-0">
         <Button
           variant="ghost"
           className="flex-1"
@@ -393,6 +399,8 @@ export function ColourStep({ onNext }: { onNext: () => void }) {
           {ready ? "Done!" : `${count}/${Math.ceil(REGIONS.length * 0.6)} shapes`}
         </Button>
       </div>
+      </div>
+      </div>
     </div>
   );
 }
@@ -406,7 +414,7 @@ const FearIcon = ({ id }: { id: string }) => {
     new: <><path d="M6 22 24 10l18 12v20H6z" fill="#E6BC84" stroke={c} strokeWidth="3" strokeLinejoin="round" /><rect x="19" y="28" width="10" height="14" fill={c} /><path d="M24 4v8" stroke={c} strokeWidth="3" /><path d="M24 4h8l-2 3 2 3h-8" fill="#D9693B" /></>,
     storm: <><path d="M14 30a9 9 0 0 1 1-18 12 12 0 0 1 22 2 8 8 0 0 1 1 16z" fill="#9FD3E8" stroke={c} strokeWidth="3" /><path d="M26 30l-5 8h6l-4 8" stroke="#F5B53F" strokeWidth="3.5" fill="none" strokeLinecap="round" strokeLinejoin="round" /></>,
   };
-  return <svg viewBox="0 0 48 48" width="46" height="46" aria-hidden="true">{g[id]}</svg>;
+  return <svg viewBox="0 0 48 48" className="h-12 w-12 @2xl:h-16 @2xl:w-16" aria-hidden="true">{g[id]}</svg>;
 };
 
 const FEARS = [
@@ -420,10 +428,12 @@ export function ReflectStep({ onNext }: { onNext: () => void }) {
   const [pick, setPick] = useState<string | null>(null);
   return (
     <div className="relative flex h-full flex-col">
+      <div className="flex min-h-0 flex-1 flex-col overflow-y-auto no-scrollbar">
+      <div className="@2xl:my-auto">
       <Header kicker="Think" title="Sometimes we feel scared too">
         <Rich text="Abu Bakr (RA) felt worried in the cave. When do you feel scared?" />
       </Header>
-      <div className="mt-4 grid grid-cols-2 gap-3 px-5">
+      <div className="mt-4 grid grid-cols-2 gap-3 px-5 land:grid-cols-4">
         {FEARS.map((f) => (
           <button
             key={f.id}
@@ -431,7 +441,7 @@ export function ReflectStep({ onNext }: { onNext: () => void }) {
               sfx.soft();
               setPick(f.id);
             }}
-            className={`chunky flex flex-col items-center gap-2 p-4 font-display text-[17px] ${pick === f.id ? "bg-saffron text-ink" : "bg-cream text-ink"}`}
+            className={`chunky flex flex-col items-center gap-2 p-4 font-display text-[17px] @2xl:p-6 @2xl:text-xl ${pick === f.id ? "bg-saffron text-ink" : "bg-cream text-ink"}`}
             style={{ ["--shade" as string]: pick === f.id ? "#D08F1C" : "#E2CFA8" }}
           >
             <FearIcon id={f.id} />
@@ -445,12 +455,14 @@ export function ReflectStep({ onNext }: { onNext: () => void }) {
             <p className="font-display text-lg leading-snug text-cream">
               <Rich text="Next time, whisper what the Prophet ﷺ said in the cave:" />
             </p>
-            <div className="arabic mt-1 text-[40px] leading-snug text-saffron" style={{ textShadow: "0 0 20px rgba(245,181,63,.4)" }}>إِنَّ اللَّهَ مَعَنَا</div>
+            <div className="arabic mt-1 text-[40px] leading-snug text-saffron @2xl:text-[52px]" style={{ textShadow: "0 0 20px rgba(245,181,63,.4)" }}>إِنَّ اللَّهَ مَعَنَا</div>
             <div className="font-body text-cream">Innallāha maʿanā · <span className="text-white/70">Allah is with us</span></div>
           </motion.div>
         )}
       </AnimatePresence>
-      <div className="mt-auto p-5">
+      </div>
+      </div>
+      <div className="p-5 land:mx-auto land:w-full land:max-w-md">
         <Button className="w-full" disabled={!pick} onClick={onNext}>
           I'll remember it
         </Button>
@@ -493,7 +505,7 @@ export function LiveItStep({ onNext }: { onNext: () => void }) {
           </motion.div>
         )}
       </div>
-      <div className="p-5">
+      <div className="p-5 land:mx-auto land:w-full land:max-w-md">
         <Button className="w-full" disabled={!promised} onClick={onNext}>
           Continue
         </Button>

@@ -81,13 +81,15 @@ export function StoryStep({ scene, title, lines, ayah, onNext }: { scene: SceneK
   const label = !allLines ? "Next" : ayah && !showAyah ? "What did he say?" : ayah && !safe ? "And then…" : "Continue";
 
   return (
-    <div className="flex h-full flex-col">
-      <div className="relative mx-4 overflow-hidden rounded-[1.75rem] shadow-xl aspect-[4/3] @2xl:aspect-[16/9] shrink-0">
+    <div className="flex h-full flex-col land:flex-row land:items-center land:gap-6 land:px-5 land:pb-5">
+      <div className="relative mx-4 aspect-[4/3] shrink-0 overflow-hidden rounded-[1.75rem] shadow-xl land:mx-0 land:w-[56%]">
         <SceneView scene={scene} line={shown - 1} safe={safe} />
         <div className="absolute left-3 top-3 rounded-full bg-night/70 px-3 py-1 font-display text-sm text-cream backdrop-blur">{title}</div>
       </div>
 
-      <div className="flex-1 space-y-2.5 overflow-y-auto px-5 pt-4 no-scrollbar">
+      <div className="flex min-h-0 flex-1 flex-col land:self-stretch">
+      <div className="flex flex-1 flex-col overflow-y-auto px-5 pt-4 no-scrollbar land:px-1 land:pt-0">
+      <div className="space-y-2.5 land:my-auto">
         <AnimatePresence initial={false}>
           {lines.slice(0, shown).map((l, i) => (
             <motion.div
@@ -117,11 +119,13 @@ export function StoryStep({ scene, title, lines, ayah, onNext }: { scene: SceneK
           <SampleNote dark />
         </div>
       </div>
+      </div>
 
-      <div className="p-5 pt-3">
+      <div className="p-5 pt-3 land:px-1 land:pb-0">
         <Button variant={label === "Continue" ? "saffron" : "cream"} className="w-full" onClick={advance} silent>
           {label}
         </Button>
+      </div>
       </div>
     </div>
   );

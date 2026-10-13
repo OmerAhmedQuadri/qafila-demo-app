@@ -43,7 +43,7 @@ export function Studio() {
   const [sel, setSel] = useState<Item>(ITEMS[0]);
   return (
     <div className="flex h-full flex-col bg-[#F4F1EC]">
-      <div className="flex items-center gap-3 bg-night px-5 pt-12 pb-4 text-cream">
+      <div className="flex items-center gap-3 bg-night px-5 pt-12 pb-4 text-cream land:pt-5">
         <button aria-label="Back to the app" onClick={() => openTab("home")} className="grid h-10 w-10 place-items-center rounded-full bg-white/10">
           <IconBack size={18} />
         </button>
