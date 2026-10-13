@@ -26,3 +26,5 @@ export const IconRefresh = ({ size, ...p }: P) => (<svg {...base(size)} {...p}><
 export const IconStudio = ({ size, ...p }: P) => (<svg {...base(size)} {...p}><rect x="3" y="5" width="18" height="12" rx="2" /><path d="M8 21h8M12 17v4M10 9l4 2-4 2z" /></svg>);
 export const IconStar = ({ size, ...p }: P) => (<svg {...base(size)} fill="currentColor" stroke="none" {...p}><path d="m12 2.8 2.7 5.6 6.1.8-4.4 4.3 1 6.1L12 16.7l-5.4 2.9 1-6.1-4.4-4.3 6.1-.8z" /></svg>);
 export const IconRotate = ({ size, ...p }: P) => (<svg {...base(size)} {...p}><rect x="4" y="7" width="16" height="10" rx="2" /><path d="M8 3.5A8.5 8.5 0 0 1 19.5 6M16 20.5A8.5 8.5 0 0 1 4.5 18" /><path d="M19.5 2.5V6H16M4.5 21.5V18H8" /></svg>);
+export const IconReadAloud = ({ size, ...p }: P) => (<svg {...base(size)} {...p}><path d="M3 5.5A1.5 1.5 0 0 1 4.5 4H9a3 3 0 0 1 3 3v12a2.5 2.5 0 0 0-2.5-2.5H3z" /><path d="M12 7v12" /><path d="M16 9.5a3.5 3.5 0 0 1 0 5M19 7a7 7 0 0 1 0 10" /></svg>);
+export const IconReplay = ({ size, ...p }: P) => (<svg {...base(size)} {...p}><path d="M4 12a8 8 0 1 0 2.6-5.9L4 8.5" /><path d="M4 3.5v5h5" /></svg>);

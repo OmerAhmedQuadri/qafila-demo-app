@@ -6,7 +6,7 @@ import { AYAH } from "../../content/hijrah";
 import { CaveEntrance, CaveInside, FootprintsToThawr, MadinahDawn, MadinahStreet, MakkahNight } from "../../art/scenes/Scenes";
 import { Button, Rich, forSpeech, SampleNote } from "../../components/ui";
 import { speak } from "../../lib/narrate";
-import { IconSpeaker } from "../../art/Icons";
+import { IconReplay, IconSpeaker } from "../../art/Icons";
 import { sfx } from "../../lib/sound";
 
 function SceneView({ scene, line, safe }: { scene: SceneKind; line: number; safe: boolean }) {
@@ -48,16 +48,43 @@ export function AyahCard({ compact = false }: { compact?: boolean }) {
   );
 }
 
-export function StoryStep({ scene, title, lines, ayah, onNext }: { scene: SceneKind; title: string; lines: string[]; ayah?: boolean; onNext: () => void }) {
+export function StoryStep({
+  scene,
+  title,
+  lines,
+  ayah,
+  revealed = false,
+  onNext,
+}: {
+  scene: SceneKind;
+  title: string;
+  lines: string[];
+  ayah?: boolean;
+  /** Coming back to a scene: show everything at once so it can be re-read. */
+  revealed?: boolean;
+  onNext: () => void;
+}) {
   const narration = useStore((s) => s.narration);
-  const [shown, setShown] = useState(1);
-  const [showAyah, setShowAyah] = useState(false);
-  const [safe, setSafe] = useState(false);
+  const showToast = useStore((s) => s.showToast);
+  const [shown, setShown] = useState(revealed ? lines.length : 1);
+  const [showAyah, setShowAyah] = useState(revealed && !!ayah);
+  const [safe, setSafe] = useState(revealed && !!ayah);
   const allLines = shown >= lines.length;
 
   useEffect(() => {
     if (narration) speak(forSpeech(lines[shown - 1]));
   }, [shown, narration, lines]);
+
+  /** Tap a line to rewind the scene to it; Next then continues from there. */
+  const replayFrom = (i: number) => {
+    sfx.soft();
+    const unchanged = i + 1 === shown && !showAyah;
+    setShown(i + 1);
+    setShowAyah(false);
+    setSafe(false);
+    // the narration effect only fires when the line changes, so re-read it here otherwise
+    if (narration && unchanged) speak(forSpeech(lines[i]));
+  };
 
   const advance = () => {
     if (!allLines) {
@@ -97,27 +124,47 @@ export function StoryStep({ scene, title, lines, ayah, onNext }: { scene: SceneK
             <motion.div
               key={i}
               initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: i === shown - 1 ? 1 : 0.6, y: 0 }}
+              animate={{ opacity: i === shown - 1 && !showAyah ? 1 : 0.6, y: 0 }}
+              exit={{ opacity: 0, y: -6, transition: { duration: 0.18 } }}
               className="flex items-start gap-2"
             >
-              <p className="flex-1 font-display text-[19px] leading-snug text-cream @2xl:text-[22px]">
+              <button
+                onClick={() => replayFrom(i)}
+                aria-label={`Replay from: ${l}`}
+                className="-mx-2 flex-1 rounded-xl px-2 py-0.5 text-left font-display text-[19px] leading-snug text-cream transition hover:bg-white/5 active:bg-white/10 @2xl:text-[22px]"
+              >
                 <Rich text={l} />
-              </p>
+              </button>
               {i === shown - 1 && (
-                <button aria-label="Read this line aloud" onClick={() => speak(forSpeech(l))} className="mt-0.5 rounded-full bg-white/10 p-2 text-saffron">
+                <button
+                  aria-label="Read this line aloud"
+                  onClick={() => {
+                    if (!speak(forSpeech(l))) showToast("Sound is off. Turn it on to listen.");
+                  }}
+                  className="mt-0.5 rounded-full bg-white/10 p-2 text-saffron"
+                >
                   <IconSpeaker size={18} />
                 </button>
               )}
             </motion.div>
           ))}
         </AnimatePresence>
-        {showAyah && <AyahCard />}
+        {showAyah && (
+          <button className="block w-full text-left" aria-label="Replay from the verse" onClick={() => { sfx.soft(); setSafe(false); }}>
+            <AyahCard />
+          </button>
+        )}
         {safe && (
           <motion.p initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="font-display text-[19px] leading-snug text-mint">
             The searchers turned around and left. Allah kept them safe.
           </motion.p>
         )}
-        <div className="pt-1 pb-2">
+        <div className="space-y-1 pt-1 pb-2">
+          {(shown > 1 || showAyah) && (
+            <p className="flex items-center gap-1.5 text-[12px] font-bold text-saffron/80">
+              <IconReplay size={14} /> Tap any line to replay from there
+            </p>
+          )}
           <SampleNote dark />
         </div>
       </div>

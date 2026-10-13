@@ -272,9 +272,19 @@ export function stopAllSound() {
 }
 
 // Turning sound off silences the soundscape straight away, not only new effects.
-useStore.subscribe((s, prev) => {
+const unsubscribe = useStore.subscribe((s, prev) => {
   if (prev.sound && !s.sound) stopAllSound();
 });
+
+// Dev only: a hot reload replaces this module; stop the old background sound
+// and close the old audio context so nothing keeps playing out of reach.
+if (import.meta.hot) {
+  import.meta.hot.dispose(() => {
+    unsubscribe();
+    stopAllSound();
+    void ctx?.close();
+  });
+}
 
 export function haptic(ms = 12) {
   try { navigator.vibrate?.(ms); } catch { /* unsupported */ }

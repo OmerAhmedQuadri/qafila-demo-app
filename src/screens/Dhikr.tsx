@@ -5,7 +5,7 @@ import { DHIKR } from "../content/data";
 import { haptic, sfx } from "../lib/sound";
 import { IconHeart, IconSpeaker } from "../art/Icons";
 import { PlantArt } from "../art/Plants";
-import { SampleNote } from "../components/ui";
+import { Portal, SampleNote } from "../components/ui";
 
 export function Dhikr() {
   const s = useStore();
@@ -117,9 +117,10 @@ export function Dhikr() {
         <SampleNote />
       </div>
 
+      <Portal>
       <AnimatePresence>
         {bloom && (
-          <motion.div className="absolute inset-0 z-30 grid place-items-center bg-cream/85 backdrop-blur-sm" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+          <motion.div className="pointer-events-auto absolute inset-0 grid place-items-center bg-cream/85 backdrop-blur-sm" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
             <motion.div className="text-center" initial={{ scale: 0.6 }} animate={{ scale: 1 }} transition={{ type: "spring" }}>
               <div className="mx-auto w-fit">
                 <PlantArt kind="lily" size={110} />
@@ -132,6 +133,7 @@ export function Dhikr() {
           </motion.div>
         )}
       </AnimatePresence>
+      </Portal>
     </div>
   );
 }

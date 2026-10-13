@@ -4,6 +4,7 @@ import { useStore } from "./state/store";
 import { DeviceFrame, FloatingGuide, PresenterPanel } from "./components/Shell";
 import { Toast } from "./components/ui";
 import { OrientCtx, type Orient } from "./components/orient";
+import { OverlayCtx } from "./components/overlay";
 import { Profiles, Splash } from "./screens/Welcome";
 import { BottomNav, Home, TopBar } from "./screens/Home";
 import { Journey } from "./screens/Journey";
@@ -38,6 +39,7 @@ function Screens() {
   const screen = useStore((s) => s.screen);
   const ref = useRef<HTMLDivElement>(null);
   const [orient, setOrient] = useState<Orient>({ landscape: false, w: 390, h: 844 });
+  const [overlay, setOverlay] = useState<HTMLElement | null>(null);
   useLayoutEffect(() => {
     const el = ref.current;
     if (!el) return;
@@ -64,14 +66,18 @@ function Screens() {
   }
   return (
     <OrientCtx.Provider value={orient}>
-      <div ref={ref} data-orient={orient.landscape ? "landscape" : "portrait"} className="@container relative h-full w-full overflow-hidden">
-        <AnimatePresence mode="wait">
-          <motion.div key={screen} className="absolute inset-0" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }}>
-            {node}
-          </motion.div>
-        </AnimatePresence>
-        <Toast />
-      </div>
+      <OverlayCtx.Provider value={overlay}>
+        <div ref={ref} data-orient={orient.landscape ? "landscape" : "portrait"} className="@container relative h-full w-full overflow-hidden">
+          <AnimatePresence mode="wait">
+            <motion.div key={screen} className="absolute inset-0" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }}>
+              {node}
+            </motion.div>
+          </AnimatePresence>
+          {/* pop-ups render here: on top of the whole screen, not inside scrolled content */}
+          <div ref={setOverlay} className="pointer-events-none absolute inset-0 z-[65]" />
+          <Toast />
+        </div>
+      </OverlayCtx.Provider>
     </OrientCtx.Provider>
   );
 }

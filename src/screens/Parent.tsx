@@ -231,6 +231,13 @@ export function ParentDashboard() {
               </div>
               <div className="flex items-center justify-between gap-3">
                 <div>
+                  <div className="font-bold">App sounds</div>
+                  <div className="text-xs text-muted">All sound: effects, nature sounds and read-aloud</div>
+                </div>
+                <Toggle on={s.sound} onChange={s.toggleSound} label="App sounds" />
+              </div>
+              <div className="flex items-center justify-between gap-3">
+                <div>
                   <div className="font-bold">Voices & nature sounds only</div>
                   <div className="text-xs text-muted">No music anywhere in the app</div>
                 </div>

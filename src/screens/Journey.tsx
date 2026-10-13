@@ -26,6 +26,8 @@ function UnitGlyph({ icon, color = "#2B2140" }: { icon: Unit["icon"]; color?: st
 export function Journey() {
   const s = useStore();
   const [picked, setPicked] = useState<Unit | null>(null);
+  const [sheetOpen, setSheetOpen] = useState(false); // separate flag keeps content visible while the sheet slides away
+  const close = () => setSheetOpen(false);
 
   const stateOf = (u: Unit): Unit["state"] => {
     if (u.id === "hijrah") return s.lessonDone ? "done" : "current";
@@ -93,8 +95,9 @@ export function Journey() {
                     onClick={() => {
                       sfx.tap();
                       setPicked(u);
+                      setSheetOpen(true);
                     }}
-                    className="relative transition active:translate-y-1"
+                    className="relative rounded-full transition active:translate-y-1"
                   >
                     {st === "new" && (
                       <>
@@ -139,7 +142,7 @@ export function Journey() {
         34 more stories in the full app · a new episode every Friday
       </div>
 
-      <Sheet open={!!picked} onClose={() => setPicked(null)}>
+      <Sheet open={sheetOpen} onClose={close}>
         {picked && (
           <div className="space-y-4 text-center">
             <div className="mx-auto w-fit">
@@ -155,7 +158,7 @@ export function Journey() {
               <Button
                 className="w-full"
                 onClick={() => {
-                  setPicked(null);
+                  close();
                   s.openLesson("hijrah");
                 }}
               >
@@ -169,7 +172,7 @@ export function Journey() {
                   variant="terracotta"
                   className="w-full"
                   onClick={() => {
-                    setPicked(null);
+                    close();
                     s.openLesson("welcome");
                   }}
                 >
@@ -185,7 +188,7 @@ export function Journey() {
                     variant="teal"
                     className="w-full"
                     onClick={() => {
-                      setPicked(null);
+                      close();
                       s.openLesson(picked.id as "hijrah" | "welcome");
                     }}
                   >
@@ -193,7 +196,7 @@ export function Journey() {
                   </Button>
                 </>
               ) : (
-                <p className="rounded-2xl bg-teal/10 p-3 text-teal">Completed, masha'Allah! Replays are available in the full app.</p>
+                <p className="rounded-2xl bg-teal/10 p-3 text-teal">Completed, masha'Allah! In the full app every finished story can be replayed. This demo includes two playable episodes: the Hijrah and Madinah Welcomes.</p>
               ))}
             {stateOf(picked) === "locked" && (
               <p className="rounded-2xl bg-ink/5 p-3 text-muted">

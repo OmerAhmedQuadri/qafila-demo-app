@@ -1,7 +1,9 @@
-import { useEffect, useRef, useState, type ReactNode, type ButtonHTMLAttributes } from "react";
+import { useContext, useEffect, useRef, useState, type ReactNode, type ButtonHTMLAttributes } from "react";
+import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "motion/react";
 import { sfx, haptic } from "../lib/sound";
 import { useStore } from "../state/store";
+import { OverlayCtx } from "./overlay";
 
 /** Renders ﷺ in an Arabic font so it displays correctly everywhere. */
 export function Rich({ text }: { text: string }) {
@@ -70,27 +72,42 @@ export function ProgressBar({ value, dark = false }: { value: number; dark?: boo
   );
 }
 
-/** Bottom sheet modal inside the app frame. */
+/** Renders children into the screen-level overlay layer (on top of the screen, whatever is scrolled). */
+export function Portal({ children }: { children: ReactNode }) {
+  const el = useContext(OverlayCtx);
+  return el ? createPortal(children, el) : <>{children}</>;
+}
+
+/** Bottom sheet pop-up. Always appears at the bottom of the visible screen, above the tab bar. */
 export function Sheet({ open, onClose, children, dark = false }: { open: boolean; onClose: () => void; children: ReactNode; dark?: boolean }) {
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open, onClose]);
   return (
-    <AnimatePresence>
-      {open && (
-        <>
-          <motion.div className="absolute inset-0 z-40 bg-black/45" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} />
-          <motion.div
-            role="dialog"
-            className={`absolute inset-x-0 bottom-0 z-50 rounded-t-[2rem] p-6 pb-8 shadow-2xl ${dark ? "bg-night-2 text-cream" : "bg-cream text-ink"}`}
-            initial={{ y: "100%" }}
-            animate={{ y: 0 }}
-            exit={{ y: "100%" }}
-            transition={{ type: "spring", stiffness: 260, damping: 28 }}
-          >
-            <div className={`mx-auto mb-4 h-1.5 w-12 rounded-full ${dark ? "bg-white/25" : "bg-ink/15"}`} />
-            {children}
-          </motion.div>
-        </>
-      )}
-    </AnimatePresence>
+    <Portal>
+      <AnimatePresence>
+        {open && (
+          <>
+            <motion.div className="pointer-events-auto absolute inset-0 bg-black/45" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} />
+            <motion.div
+              role="dialog"
+              aria-modal="true"
+              className={`pointer-events-auto absolute inset-x-0 bottom-0 mx-auto max-h-[88%] w-full overflow-y-auto rounded-t-[2rem] p-6 pb-8 shadow-2xl no-scrollbar @2xl:max-w-xl ${dark ? "bg-night-2 text-cream" : "bg-cream text-ink"}`}
+              initial={{ y: "100%" }}
+              animate={{ y: 0 }}
+              exit={{ y: "100%" }}
+              transition={{ type: "spring", stiffness: 260, damping: 28 }}
+            >
+              <div className={`mx-auto mb-4 h-1.5 w-12 rounded-full ${dark ? "bg-white/25" : "bg-ink/15"}`} />
+              {children}
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+    </Portal>
   );
 }
 

@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { motion } from "motion/react";
 import { useStore, type StudioCol } from "../state/store";
-import { IconBack, IconCheck, IconClock, IconStudio } from "../art/Icons";
+import { IconArrowRight, IconBack, IconCheck, IconClock, IconStudio } from "../art/Icons";
 import { MiniScene } from "../art/scenes/Scenes";
-import { Button, Rich } from "../components/ui";
+import { Button, Rich, Sheet } from "../components/ui";
 import { sfx } from "../lib/sound";
 
 type Check = [string, "done" | "doing" | "todo"];
@@ -44,11 +44,17 @@ const COL_COLOR: Record<StudioCol, string> = { Draft: "#7A6E8A", "Scholar review
 export function Studio() {
   const s = useStore();
   const col = (id: string) => s.studio[id] ?? "Draft";
-  const [selId, setSelId] = useState("ep6");
-  const sel = ITEMS.find((i) => i.id === selId)!;
-  const selCol = col(sel.id);
+  const [selId, setSelId] = useState<string | null>(null);
+  const [sheetOpen, setSheetOpen] = useState(false); // separate flag keeps content visible while the sheet slides away
+  const sel = ITEMS.find((i) => i.id === selId) ?? null;
+  const selCol: StudioCol = sel ? col(sel.id) : "Draft";
+  const open = (id: string) => {
+    sfx.tap();
+    setSelId(id);
+    setSheetOpen(true);
+  };
 
-  const checklist = sel.checklist.map(([label, st]): Check =>
+  const checklist = (sel?.checklist ?? []).map(([label, st]): Check =>
     label === "Scholar sign-off" && selCol !== "Draft" && selCol !== "Scholar review" ? [label, "done"] : [label, st],
   );
   const liveEpisodes = 4 + ITEMS.filter((i) => i.type === "Episode" && col(i.id) === "Live").length;
@@ -75,9 +81,14 @@ export function Studio() {
       </div>
 
       <div className="flex-1 overflow-y-auto p-4 no-scrollbar">
-        <div className="mb-3 rounded-2xl bg-saffron/20 px-4 py-2.5 text-sm text-ink">
-          <b>Try it:</b> approve and publish Episode 6, then tap “View in the kids' app”. What you publish here appears there straight away.
-        </div>
+        <button onClick={() => open("ep6")} className="mb-3 flex w-full items-center gap-3 rounded-2xl bg-saffron/20 px-4 py-2.5 text-left text-sm text-ink">
+          <span className="flex-1">
+            <b>Try it:</b> approve and publish Episode 6, then tap “View in the kids' app”. What you publish here appears there straight away.
+          </span>
+          <span className="flex shrink-0 items-center gap-1 rounded-full bg-saffron px-3 py-1.5 font-display text-sm">
+            Open Ep 6 <IconArrowRight size={14} />
+          </span>
+        </button>
         <div className="mb-4 grid grid-cols-3 gap-2">
           {[["Live episodes", String(liveEpisodes)], ["In review", String(inReview)], ["Next release", "Friday"]].map(([k, v]) => (
             <div key={k} className="rounded-2xl bg-white p-3 shadow-sm">
@@ -100,11 +111,8 @@ export function Studio() {
                   <motion.button
                     layout
                     key={it.id}
-                    onClick={() => {
-                      sfx.tap();
-                      setSelId(it.id);
-                    }}
-                    className={`w-full overflow-hidden rounded-xl bg-white text-left shadow-sm transition ${selId === it.id ? "ring-2 ring-saffron" : ""}`}
+                    onClick={() => open(it.id)}
+                    className={`w-full overflow-hidden rounded-xl bg-white text-left shadow-sm transition ${sheetOpen && selId === it.id ? "ring-2 ring-saffron" : ""}`}
                   >
                     <div className="h-14"><MiniScene kind={it.scene} /></div>
                     <div className="p-2.5">
@@ -119,7 +127,9 @@ export function Studio() {
           ))}
         </div>
 
-        <motion.div key={sel.id + selCol} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mt-4 rounded-3xl bg-white p-4 shadow-sm">
+        <Sheet open={sheetOpen} onClose={() => setSheetOpen(false)}>
+        {sel && (
+        <motion.div key={sel.id + selCol} initial={{ opacity: 0.4 }} animate={{ opacity: 1 }}>
           <div className="text-[11px] font-extrabold tracking-wider uppercase" style={{ color: COL_COLOR[selCol] }}>{selCol} · {sel.type}</div>
           <div className="font-display text-xl leading-tight"><Rich text={sel.title} /></div>
           <div className="text-sm text-muted">{sel.who}</div>
@@ -168,6 +178,8 @@ export function Studio() {
           {sel.waiting && <p className="mt-3 text-sm text-muted">{sel.waiting}. It moves on once the recording is in.</p>}
           {selCol === "Draft" && <p className="mt-3 text-sm text-muted">Your team is still working on this one.</p>}
         </motion.div>
+        )}
+        </Sheet>
         <p className="mt-4 text-center text-xs text-muted">Your team uploads, the scholar approves, and episodes publish themselves every Friday. No developer needed.</p>
       </div>
     </div>
