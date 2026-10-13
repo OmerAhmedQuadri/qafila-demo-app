@@ -1,4 +1,64 @@
-node_modules
-dist
+# ---------------------------------------------------------------------------
+# Documentation and Claude files are never committed (same rule as the
+# Green Skill Agro repo). Project docs live outside this repo in ../docs and
+# in Google Drive. README.md (how to run the demo) is the one exception.
+# ---------------------------------------------------------------------------
+*.md
+!/README.md
+CLAUDE.md
+AGENTS.md
+.claude/
+
+# Client source documents and data, wherever they land
+*.docx
+*.doc
+*.pdf
+*.xlsx
+*.xls
+*.ods
+
+# ---------------------------------------------------------------------------
+# Standard Vite / React / pnpm ignores
+# ---------------------------------------------------------------------------
+
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Secrets: never commit
+.env
+.env.*
+!.env.example
+*.local
+
+# Build output
+dist/
+dist-ssr/
+*.tsbuildinfo
+
+# Deployment tooling
+.vercel/
+.netlify/
+
+# Test & coverage
+coverage/
+playwright-report/
+test-results/
+
+# Logs
 *.log
+npm-debug.log*
+pnpm-debug.log*
+
+# OS & editor
 .DS_Store
+Thumbs.db
+desktop.ini
+.idea/
+.vscode/*
+!.vscode/extensions.json
+*.swp
+
+# Local scratch
+tmp/
+scratch/
