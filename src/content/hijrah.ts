@@ -1,7 +1,7 @@
 // "The Night Journey to Safety" — sample unit for ages 8–10.
 // Every fact is tied to a source (see sources.ts). Status in the demo: scholar review pending.
 
-export type SceneKind = "makkah" | "footprints" | "caveInside" | "caveEntrance" | "madinah";
+export type SceneKind = "makkah" | "footprints" | "caveInside" | "caveEntrance" | "madinah" | "madinahStreet";
 
 export type Step =
   | { kind: "story"; scene: SceneKind; title: string; lines: string[]; ayah?: boolean; source: string }
@@ -11,6 +11,16 @@ export type Step =
   | { kind: "colour" }
   | { kind: "reflect" }
   | { kind: "liveit" }
+  | {
+      kind: "choose";
+      kicker: string;
+      title: string;
+      prompt: string;
+      options: { id: string; label: string; icon: "salaam" | "water" | "share" | "seat" }[];
+      response: string;
+      quote: { text: string; ref: string };
+      cta: string;
+    }
   | { kind: "complete" };
 
 export const HIJRAH_TITLE = "The Night Journey to Safety";

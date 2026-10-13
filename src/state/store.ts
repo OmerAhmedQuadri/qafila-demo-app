@@ -25,6 +25,21 @@ export interface Plant {
 
 export type LiveItState = "none" | "committed" | "approved";
 
+export type LessonId = "hijrah" | "welcome";
+
+/** Content pipeline columns in the Studio (Media Plus's admin). */
+export type StudioCol = "Draft" | "Scholar review" | "Approved" | "Scheduled" | "Live";
+
+const initialStudio: Record<string, StudioCol> = {
+  ep7: "Draft",
+  c6: "Draft",
+  ramadan: "Draft",
+  ep6: "Scholar review",
+  d1: "Scholar review",
+  fri: "Scheduled",
+  ep5: "Live",
+};
+
 interface Goals {
   lesson: boolean;
   dhikr: boolean;
@@ -36,8 +51,12 @@ interface State {
   tab: Tab;
   childId: "ayaan" | "zara";
   streakBefore: number; // days lit before today
+  lessonId: LessonId;
   lessonStep: number;
   lessonDone: boolean;
+  welcomeStep: number;
+  welcomeDone: boolean;
+  studio: Record<string, StudioCol>;
   dhikrPhrase: string;
   dhikrCount: number;
   dhikrSets: number;
@@ -57,6 +76,10 @@ interface State {
   setChild: (id: "ayaan" | "zara") => void;
   setLessonStep: (n: number) => void;
   completeLesson: () => void;
+  openLesson: (id: LessonId) => void;
+  setWelcomeStep: (n: number) => void;
+  completeWelcome: () => void;
+  studioMove: (id: string, col: StudioCol) => void;
   setDhikrPhrase: (id: string) => void;
   countDhikr: (target: number) => boolean; // returns true when a set completes
   commitLiveIt: () => void;
@@ -84,8 +107,12 @@ const initial = {
   tab: "home" as Tab,
   childId: "ayaan" as const,
   streakBefore: 6,
+  lessonId: "hijrah" as LessonId,
   lessonStep: 0,
   lessonDone: false,
+  welcomeStep: 0,
+  welcomeDone: false,
+  studio: initialStudio,
   dhikrPhrase: "subhanallah",
   dhikrCount: 0,
   dhikrSets: 0,
@@ -133,6 +160,30 @@ export const useStore = create<State>()(
       openTab: (tab) => set({ screen: "app", tab }),
       setChild: (childId) => set({ childId }),
       setLessonStep: (lessonStep) => set({ lessonStep }),
+      openLesson: (lessonId) => set({ lessonId, screen: "lesson" }),
+      setWelcomeStep: (welcomeStep) => set({ welcomeStep }),
+      studioMove: (id, col) => set({ studio: { ...get().studio, [id]: col } }),
+
+      completeWelcome: () => {
+        const s = get();
+        if (s.welcomeDone) return;
+        set({
+          welcomeDone: true,
+          goals: { ...s.goals, lesson: true },
+          cards: s.cards.includes("madinah") ? s.cards : [...s.cards, "madinah"],
+          plants: [
+            ...s.plants,
+            {
+              id: "welcome-palm",
+              kind: "palm",
+              label: "Palm of Welcome",
+              reason: "Finished “Madinah Welcomes”",
+              slot: nextSlot(s.plants),
+              fresh: true,
+            },
+          ],
+        });
+      },
 
       completeLesson: () => {
         const s = get();

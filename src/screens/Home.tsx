@@ -1,11 +1,10 @@
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { motion } from "motion/react";
 import { useStore, streakNow, type Tab } from "../state/store";
 import { KidAvatar, Lantern, Tamr } from "../art/Characters";
 import { FootprintsToThawr, MiniScene } from "../art/scenes/Scenes";
-import { ERAS } from "../content/data";
 import { IconBeads, IconCheck, IconHeart, IconHome, IconLock, IconMap, IconPlay, IconSprout, IconBook } from "../art/Icons";
-import { Button, ProgressBar } from "../components/ui";
+import { Button, ProgressBar, Rich, SampleNote, Sheet } from "../components/ui";
 import { hijrahSteps, HIJRAH_TITLE } from "../content/hijrah";
 import { sfx } from "../lib/sound";
 
@@ -88,7 +87,7 @@ function Goals() {
               key={it.key}
               onClick={() => {
                 sfx.tap();
-                if (it.key === "lesson") s.go("lesson");
+                if (it.key === "lesson") s.openLesson("hijrah");
                 else if (it.tab) s.setTab(it.tab);
                 else s.showToast(s.liveIt === "committed" ? "Waiting for a grown-up to say yes!" : "Finish today's story to get your good-deed challenge!");
               }}
@@ -127,7 +126,7 @@ function ContinueCard() {
           <div className="text-sm text-white/65">Today's lesson: trust in Allah · 6 min</div>
         </div>
         <ProgressBar value={progress} dark />
-        <Button variant="saffron" className="flex w-full items-center justify-center gap-2" onClick={() => s.go("lesson")}>
+        <Button variant="saffron" className="flex w-full items-center justify-center gap-2" onClick={() => s.openLesson("hijrah")}>
           <IconPlay size={20} /> {s.lessonDone ? "Play again" : s.lessonStep > 0 ? "Continue" : "Start the journey"}
         </Button>
       </div>
@@ -164,9 +163,107 @@ function TamrTip() {
   );
 }
 
+/** The Friday special's content, published from the Studio. */
+function FridaySheet({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const showToast = useStore((s) => s.showToast);
+  const tips = [
+    { t: "Take a bath and wear clean clothes", c: "#1F8A85" },
+    { t: "Go to Jumu'ah prayer with your family", c: "#D9693B" },
+    { t: "Send lots of salawat on the Prophet ﷺ", c: "#E86A7F" },
+    { t: "Read Surah Al-Kahf", c: "#3B2E6E" },
+  ];
+  return (
+    <Sheet open={open} onClose={onClose}>
+      <div className="space-y-4">
+        <div className="relative h-28 overflow-hidden rounded-2xl">
+          <MiniScene kind="quba" />
+          <div className="absolute left-3 top-3 rounded-full bg-saffron px-3 py-1 font-display text-xs text-ink">Friday special</div>
+        </div>
+        <div>
+          <div className="font-display text-2xl leading-tight">Jumu'ah, the best day of the week!</div>
+          <p className="mt-1 text-[15px] text-muted">
+            <Rich text="The Prophet ﷺ said: “The best day on which the sun has risen is Friday.” (Sahih Muslim 854)" />
+          </p>
+        </div>
+        <div>
+          <div className="mb-2 font-display text-lg">Friday sunnahs you can do</div>
+          <ul className="space-y-2">
+            {tips.map((x) => (
+              <li key={x.t} className="flex items-center gap-3 rounded-2xl bg-sand/80 p-3">
+                <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full text-cream" style={{ background: x.c }}>
+                  <IconCheck size={14} />
+                </span>
+                <span className="text-[15px]"><Rich text={x.t} /></span>
+              </li>
+            ))}
+          </ul>
+        </div>
+        <Button
+          className="w-full"
+          onClick={() => {
+            onClose();
+            showToast("See you on Friday, insha'Allah!");
+          }}
+        >
+          I'll try them this Friday
+        </Button>
+        <div className="text-center"><SampleNote /></div>
+      </div>
+    </Sheet>
+  );
+}
+
+/** Items published from the Studio show up here straight away. */
+function JustArrived() {
+  const s = useStore();
+  const [friday, setFriday] = useState(false);
+  const ep6 = s.studio.ep6 === "Live";
+  const fri = s.studio.fri === "Live";
+  if (!ep6 && !fri) return null;
+  return (
+    <motion.section initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="rounded-3xl bg-cream p-4 shadow-sm">
+      <div className="mb-3 flex items-center gap-2">
+        <span className="rounded-full bg-terracotta px-2.5 py-0.5 font-display text-xs text-cream">New</span>
+        <div className="font-display text-lg">Just arrived</div>
+      </div>
+      <div className="grid gap-3 @md:grid-cols-2">
+        {ep6 && (
+          <button onClick={() => s.openLesson("welcome")} className="chunky flex items-center gap-3 overflow-hidden bg-sand p-2 pr-4 text-left" style={{ ["--shade" as string]: "#E2CFA8" }}>
+            <div className="h-16 w-24 shrink-0 overflow-hidden rounded-xl"><MiniScene kind="madinah" /></div>
+            <div className="min-w-0 flex-1">
+              <div className="text-[11px] font-extrabold tracking-wider text-terracotta uppercase">Episode 6</div>
+              <div className="font-display leading-tight">Madinah Welcomes</div>
+              <div className="text-xs text-muted">{s.welcomeDone ? "Completed, masha'Allah!" : "Play the new episode"}</div>
+            </div>
+            {s.welcomeDone ? <IconCheck size={20} className="text-teal" /> : <IconPlay size={20} className="text-terracotta" />}
+          </button>
+        )}
+        {fri && (
+          <button onClick={() => setFriday(true)} className="chunky flex items-center gap-3 overflow-hidden bg-sand p-2 pr-4 text-left" style={{ ["--shade" as string]: "#E2CFA8" }}>
+            <div className="h-16 w-24 shrink-0 overflow-hidden rounded-xl"><MiniScene kind="quba" /></div>
+            <div className="min-w-0 flex-1">
+              <div className="text-[11px] font-extrabold tracking-wider text-teal uppercase">Friday special</div>
+              <div className="font-display leading-tight">Jumu'ah, the best day</div>
+              <div className="text-xs text-muted">4 Friday sunnahs to try</div>
+            </div>
+            <IconBook size={20} className="text-teal" />
+          </button>
+        )}
+      </div>
+      <FridaySheet open={friday} onClose={() => setFriday(false)} />
+    </motion.section>
+  );
+}
+
 function UpNext() {
   const s = useStore();
-  const upcoming = ERAS.flatMap((e) => e.units).filter((u) => u.state === "locked").slice(0, 3);
+  const all = [
+    { id: "fri", title: "Friday special: Jumu'ah", when: "This Friday", scene: "quba" as const, show: s.studio.fri !== "Live" },
+    { id: "welcome", title: "Madinah Welcomes", when: "Next week", scene: "madinah" as const, show: s.studio.ep6 !== "Live" },
+    { id: "masjid", title: "Building the Masjid", when: "In 2 weeks", scene: "quba" as const, show: true },
+    { id: "brothers", title: "Brothers & Sisters", when: "In 3 weeks", scene: "caravan" as const, show: true },
+  ];
+  const upcoming = all.filter((x) => x.show).slice(0, 3);
   return (
     <div className="rounded-3xl bg-cream p-4 shadow-sm">
       <div className="mb-3 flex items-center justify-between">
@@ -174,17 +271,17 @@ function UpNext() {
         <button onClick={() => s.setTab("journey")} className="text-sm font-bold text-teal">See map</button>
       </div>
       <div className="grid grid-cols-3 gap-2.5">
-        {upcoming.map((u, i) => (
+        {upcoming.map((u) => (
           <div key={u.id} className="overflow-hidden rounded-2xl bg-sand">
             <div className="relative h-16 @2xl:h-24">
-              <MiniScene kind={i === 0 ? "madinah" : i === 1 ? "quba" : "caravan"} />
+              <MiniScene kind={u.scene} />
               <div className="absolute inset-0 grid place-items-center bg-night/35">
                 <IconLock size={18} className="text-cream" />
               </div>
             </div>
             <div className="p-2">
               <div className="font-display text-[13px] leading-tight">{u.title}</div>
-              <div className="text-[11px] text-muted">{i === 0 ? "This Friday" : `In ${i + 1} weeks`}</div>
+              <div className="text-[11px] text-muted">{u.when}</div>
             </div>
           </div>
         ))}
@@ -196,6 +293,7 @@ function UpNext() {
 export function Home() {
   return (
     <div className="space-y-4 px-5 pb-6">
+      <JustArrived />
       <div className="grid gap-4 @2xl:grid-cols-2">
         <ContinueCard />
         <div className="space-y-4">

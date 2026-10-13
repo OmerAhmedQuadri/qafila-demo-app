@@ -344,6 +344,87 @@ export function MadinahDawn() {
   );
 }
 
+/* 6 — A Madinah street by day: the camel kneels on open land; Abu Ayyub's door glows (no people shown) */
+export function MadinahStreet() {
+  const id = useId();
+  return (
+    <Svg label="A street in Madinah by day. A camel kneels on an open piece of land, next to a house whose door glows warmly.">
+      <defs>
+        <linearGradient id={`sky${id}`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="#A9DAEE" />
+          <stop offset="1" stopColor="#FFE8C2" />
+        </linearGradient>
+        <radialGradient id={`door${id}`} cx=".5" cy=".7" r=".6">
+          <stop offset="0" stopColor="#FFD27A" stopOpacity=".9" />
+          <stop offset="1" stopColor="#FFD27A" stopOpacity="0" />
+        </radialGradient>
+      </defs>
+      <rect width="400" height="260" fill={`url(#sky${id})`} />
+      <circle cx="334" cy="48" r="40" fill="#FFF3D1" opacity=".55" />
+      <circle cx="334" cy="48" r="22" fill="#FFD27A" />
+      {[[70, 50], [96, 38], [210, 44]].map(([x, y], i) => (
+        <motion.path key={i} d={`M${x} ${y} q6 -6 12 0 q6 -6 12 0`} stroke="#3B2E6E" strokeWidth="2" fill="none" strokeLinecap="round"
+          animate={{ x: [0, 12, 0], y: [0, -5, 0] }} transition={{ duration: 6 + i, repeat: Infinity, ease: "easeInOut" }} />
+      ))}
+      <path d="M0 150 C70 132 140 148 210 136 C280 126 340 142 400 134 V200 H0Z" fill="#E7C08A" />
+      {/* back houses */}
+      {[[10, 120, 50, 50], [54, 128, 44, 42], [300, 124, 46, 46], [342, 116, 58, 54]].map(([x, y, w, h], i) => (
+        <g key={i}>
+          <rect x={x} y={y} width={w} height={h} fill={i % 2 ? "#D9A86C" : "#E2B37A"} />
+          <rect x={x - 2} y={y - 3} width={w + 4} height={4} fill="#C98F4E" />
+          <rect x={x + w / 2 - 4} y={y + 12} width="8" height="9" fill="#8C5A2B" opacity=".7" />
+        </g>
+      ))}
+      {/* bunting */}
+      <path d="M20 96 Q120 122 240 104 Q320 94 390 100" stroke="#8C5A2B" strokeWidth="1.5" fill="none" />
+      {Array.from({ length: 13 }, (_, i) => {
+        const t = i / 12;
+        const x = 20 + t * 370;
+        const y = 96 + Math.sin(t * Math.PI) * 18 - (t > 0.6 ? 4 : 0);
+        return <path key={i} d={`M${x - 6} ${y} L${x + 6} ${y} L${x} ${y + 11}Z`} fill={["#D9693B", "#1F8A85", "#F5B53F", "#E86A7F"][i % 4]} />;
+      })}
+      {/* street */}
+      <path d="M0 196 C100 186 300 186 400 196 V260 H0Z" fill="#E9CC98" />
+      {/* open land: the future masjid site, marked with stones */}
+      <path d="M40 214 L190 214 L178 246 L28 246 Z" fill="#F2DDB0" />
+      {[[44, 216], [92, 214], [140, 214], [186, 216], [30, 244], [104, 246], [176, 244]].map(([x, y], i) => (
+        <ellipse key={i} cx={x} cy={y} rx="5" ry="3" fill="#C9A26E" />
+      ))}
+      {/* palms */}
+      {[[18, 200, 0.9], [384, 204, 0.85]].map(([x, y, sc], i) => (
+        <g key={i} transform={`translate(${x} ${y}) scale(${sc})`}>
+          <path d="M0 0 C-2 -30 2 -60 6 -84" stroke="#8C5A2B" strokeWidth="7" fill="none" strokeLinecap="round" />
+          <path d="M6 -84 C-8 -98 -28 -96 -40 -84 C-22 -88 -8 -86 6 -82z M6 -84 C22 -102 42 -98 48 -84 C32 -90 18 -88 6 -82z M6 -86 C2 -104 8 -118 20 -124 C14 -110 12 -98 8 -84z" fill="#3E8E5A" />
+        </g>
+      ))}
+      {/* Abu Ayyub's house, the door glowing warmly */}
+      <g>
+        <rect x="236" y="138" width="92" height="66" fill="#E6BC84" />
+        <rect x="232" y="134" width="100" height="6" fill="#C98F4E" />
+        <rect x="252" y="152" width="14" height="14" fill="#8C5A2B" opacity=".8" />
+        <circle cx="290" cy="186" r="40" fill={`url(#door${id})`} />
+        <motion.rect x="280" y="166" width="20" height="38" rx="10" fill="#FFD27A" animate={{ opacity: [0.75, 1, 0.75] }} transition={{ duration: 3, repeat: Infinity }} />
+        <path d="M314 204 h10 l-2 -12 h-6z" fill="#B4502A" />
+        <path d="M319 192 c-6 -6 -6 -12 0 -16 c6 4 6 10 0 16z" fill="#3E8E5A" />
+      </g>
+      {/* the camel, kneeling (no rider shown) */}
+      <g transform="translate(92 176)">
+        <ellipse cx="34" cy="42" rx="40" ry="5" fill="#000" opacity=".1" />
+        <path d="M2 30 C2 18 12 14 18 14 C22 0 40 0 44 14 C54 14 60 20 60 30 C60 38 50 42 31 42 C12 42 2 38 2 30Z" fill="#C98F4E" />
+        <path d="M18 14 C24 10 38 10 44 14 L44 24 C36 27 26 27 18 24Z" fill="#1F8A85" />
+        <path d="M18 19 h26" stroke="#F5B53F" strokeWidth="2.4" />
+        <rect x="8" y="36" width="20" height="7" rx="3.5" fill="#B07A3E" />
+        <rect x="36" y="36" width="20" height="7" rx="3.5" fill="#B07A3E" />
+        <path d="M56 24 C64 18 64 8 68 0 L76 3 C72 12 72 22 64 30Z" fill="#C98F4E" />
+        <ellipse cx="76" cy="0" rx="9" ry="6" fill="#C98F4E" />
+        <ellipse cx="83" cy="3" rx="5" ry="4" fill="#D9A86C" />
+        <circle cx="75" cy="-2" r="1.6" fill="#2B2140" />
+        <ellipse cx="70" cy="-6" rx="2" ry="3.4" transform="rotate(-25 70 -6)" fill="#A86F36" />
+      </g>
+    </Svg>
+  );
+}
+
 /* Small illustrations for cards (sequence game, collection, home) */
 export function MiniScene({ kind, align = "mid" }: { kind: "makkah" | "cave" | "caravan" | "madinah" | "hira" | "quba"; align?: "mid" | "bottom" }) {
   const id = useId();

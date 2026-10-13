@@ -3,7 +3,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { useStore } from "../../state/store";
 import type { SceneKind } from "../../content/hijrah";
 import { AYAH } from "../../content/hijrah";
-import { CaveEntrance, CaveInside, FootprintsToThawr, MadinahDawn, MakkahNight } from "../../art/scenes/Scenes";
+import { CaveEntrance, CaveInside, FootprintsToThawr, MadinahDawn, MadinahStreet, MakkahNight } from "../../art/scenes/Scenes";
 import { Button, Rich, forSpeech, SampleNote } from "../../components/ui";
 import { speak } from "../../lib/narrate";
 import { IconSpeaker } from "../../art/Icons";
@@ -21,6 +21,8 @@ function SceneView({ scene, line, safe }: { scene: SceneKind; line: number; safe
       return <CaveEntrance safe={safe} />;
     case "madinah":
       return <MadinahDawn />;
+    case "madinahStreet":
+      return <MadinahStreet />;
   }
 }
 

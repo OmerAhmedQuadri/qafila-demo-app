@@ -140,7 +140,7 @@ export function ParentDashboard() {
           <div className="text-[11px] font-extrabold tracking-[.18em] uppercase opacity-70">This week with {name}</div>
           <p className="mt-1 font-display text-[19px] leading-snug">
             {isAyaan ? (
-              <Rich text={`${s.lessonDone ? "Travelled through the Hijrah and learned to trust Allah. " : "Is halfway through the Hijrah story. "}Kept a ${streakNow(s)}-day lantern streak${s.dhikrSets ? " and did dhikr today" : ""}.`} />
+              <Rich text={`${s.lessonDone ? "Travelled through the Hijrah and learned to trust Allah. " : "Is halfway through the Hijrah story. "}${s.welcomeDone ? "Learned how Madinah welcomed its guests. " : ""}Kept a ${streakNow(s)}-day lantern streak${s.dhikrSets ? " and did dhikr today" : ""}.`} />
             ) : (
               "Learned about honesty with Al-Amin and finished 4 dhikr sets."
             )}
@@ -150,7 +150,7 @@ export function ParentDashboard() {
         <div className="grid grid-cols-2 gap-3 @2xl:grid-cols-4">
           {[
             { k: "Streak", v: isAyaan ? `${streakNow(s)} days` : "3 days", icon: <IconStar size={18} /> },
-            { k: "Stories", v: isAyaan ? `${s.lessonDone ? 5 : 4} of 42` : "3 of 42", icon: <IconBook size={18} /> },
+            { k: "Stories", v: isAyaan ? `${4 + (s.lessonDone ? 1 : 0) + (s.welcomeDone ? 1 : 0)} of 42` : "3 of 42", icon: <IconBook size={18} /> },
             { k: "Dhikr sets", v: isAyaan ? `${6 + s.dhikrSets} this week` : "4 this week", icon: <IconHeart size={18} /> },
             { k: "Avg. per day", v: isAyaan ? "11 min" : "9 min", icon: <IconClock size={18} /> },
           ].map((x) => (

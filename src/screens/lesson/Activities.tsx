@@ -513,3 +513,84 @@ export function LiveItStep({ onNext }: { onNext: () => void }) {
     </div>
   );
 }
+
+/* ---------- 7. Choose (generic "how would you…?" with a teaching quote) ---------- */
+const ChoiceIcon = ({ icon }: { icon: "salaam" | "water" | "share" | "seat" }) => {
+  const c = "#3B2E6E";
+  const g: Record<typeof icon, ReactNode> = {
+    salaam: <><path d="M8 10h32a4 4 0 0 1 4 4v16a4 4 0 0 1-4 4H22l-9 7v-7H8a4 4 0 0 1-4-4V14a4 4 0 0 1 4-4z" fill="#FFF8EC" stroke={c} strokeWidth="3" strokeLinejoin="round" /><path d="M24 29s-8-4.5-8-9.5a4 4 0 0 1 8-1.6 4 4 0 0 1 8 1.6c0 5-8 9.5-8 9.5z" fill="#E86A7F" /></>,
+    water: <><path d="M14 8h20l-3 34H17z" fill="#FFF8EC" stroke={c} strokeWidth="3" strokeLinejoin="round" /><path d="M16 20h16l-2 20H18z" fill="#6EC8FF" /></>,
+    share: <><ellipse cx="24" cy="34" rx="18" ry="6" fill="#E6BC84" stroke={c} strokeWidth="3" /><circle cx="18" cy="27" r="6" fill="#D9693B" /><circle cx="29" cy="26" r="6" fill="#F5B53F" /><circle cx="24" cy="20" r="5" fill="#B4502A" /></>,
+    seat: <><path d="M14 6h20v18H14z" fill="#1F8A85" stroke={c} strokeWidth="3" strokeLinejoin="round" /><path d="M10 24h28v6H10z" fill="#7FD1B9" stroke={c} strokeWidth="3" strokeLinejoin="round" /><path d="M13 30v12M35 30v12" stroke={c} strokeWidth="3" strokeLinecap="round" /></>,
+  };
+  return <svg viewBox="0 0 48 48" className="h-12 w-12 @2xl:h-16 @2xl:w-16" aria-hidden="true">{g[icon]}</svg>;
+};
+
+export function ChooseStep({
+  kicker,
+  title,
+  prompt,
+  options,
+  response,
+  quote,
+  cta,
+  onNext,
+}: {
+  kicker: string;
+  title: string;
+  prompt: string;
+  options: { id: string; label: string; icon: "salaam" | "water" | "share" | "seat" }[];
+  response: string;
+  quote: { text: string; ref: string };
+  cta: string;
+  onNext: () => void;
+}) {
+  const [pick, setPick] = useState<string | null>(null);
+  return (
+    <div className="relative flex h-full flex-col">
+      <div className="flex min-h-0 flex-1 flex-col overflow-y-auto no-scrollbar">
+        <div className="@2xl:my-auto">
+          <Header kicker={kicker} title={<Rich text={title} />}>
+            <Rich text={prompt} />
+          </Header>
+          <div className="mt-4 grid grid-cols-2 gap-3 px-5 land:grid-cols-4">
+            {options.map((o) => (
+              <button
+                key={o.id}
+                onClick={() => {
+                  sfx.soft();
+                  setPick(o.id);
+                }}
+                className={`chunky flex flex-col items-center gap-2 p-4 text-center font-display text-[16px] leading-tight @2xl:p-6 @2xl:text-xl ${pick === o.id ? "bg-saffron text-ink" : "bg-cream text-ink"}`}
+                style={{ ["--shade" as string]: pick === o.id ? "#D08F1C" : "#E2CFA8" }}
+              >
+                <ChoiceIcon icon={o.icon} />
+                {o.label}
+              </button>
+            ))}
+          </div>
+          <AnimatePresence>
+            {pick && (
+              <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="mx-5 mt-5 rounded-3xl bg-white/8 p-4 text-center">
+                <p className="font-display text-lg leading-snug text-cream @2xl:text-xl">
+                  <Rich text={response} />
+                </p>
+                <p className="mt-2 font-display text-xl leading-snug text-saffron @2xl:text-2xl">
+                  <Rich text={quote.text} />
+                </p>
+                <p className="mt-1 text-xs text-white/60">
+                  <Rich text={quote.ref} />
+                </p>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      </div>
+      <div className="p-5 land:mx-auto land:w-full land:max-w-md">
+        <Button className="w-full" disabled={!pick} onClick={onNext}>
+          {cta}
+        </Button>
+      </div>
+    </div>
+  );
+}

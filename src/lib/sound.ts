@@ -1,9 +1,10 @@
 // All sounds are synthesised with Web Audio: no files, no music.
-// The demo follows a "voices & nature only" principle (soft chimes, wind, crickets).
+// The demo follows a "voices & nature only" principle (soft chimes, wind, crickets, birds).
 import { useStore } from "../state/store";
 
 let ctx: AudioContext | null = null;
-let noise: AudioBuffer | null = null;
+let noise: AudioBuffer | null = null; // brown noise: sand, whooshes
+let white: AudioBuffer | null = null; // white noise: airy desert wind
 
 function ac(): AudioContext | null {
   if (!useStore.getState().sound) return null;
@@ -20,6 +21,9 @@ function ac(): AudioContext | null {
         last = (last + 0.02 * w) / 1.02; // brown-ish noise
         d[i] = last * 3.5;
       }
+      white = ctx.createBuffer(1, len, ctx.sampleRate);
+      const wd = white.getChannelData(0);
+      for (let i = 0; i < len; i++) wd[i] = Math.random() * 2 - 1;
     }
     if (ctx.state === "suspended") void ctx.resume();
     return ctx;
@@ -102,72 +106,162 @@ export const sfx = {
   },
 };
 
-/* ---------- ambience (wind / night crickets) ---------- */
-type Amb = { stop: () => void };
-let current: Amb | null = null;
-let currentKind: string | null = null;
+/* ---------- ambience: a soundscape per story scene (nature only, no music) ----------
+ * night:   crickets + a faint breeze      cave:    crickets muffled by the rock
+ * wind:    light, gusty desert wind       morning: birdsong + a faint breeze
+ * Wind uses white noise through a mid band-pass with random gusts. Low brown noise on a
+ * regular slow swell (the first version) is how synthesised ocean waves are made. */
+export type Ambience = "night" | "wind" | "cave" | "morning";
 
-export function ambience(kind: "wind" | "night" | null) {
+let current: { stop: () => void } | null = null;
+let currentKind: Ambience | null = null;
+
+export function ambience(kind: Ambience | null) {
   if (kind === currentKind) return;
   current?.stop();
   current = null;
   currentKind = kind;
   if (!kind) return;
   const a = ac();
-  if (!a || !noise) return;
+  if (!a || !white) {
+    currentKind = null;
+    return;
+  }
+  const timers: number[] = [];
+  const sources: AudioScheduledSourceNode[] = [];
+  const later = (fn: () => void, ms: number) => void timers.push(window.setTimeout(fn, ms));
+  const panner = (pan: number, dest: AudioNode) => {
+    if (!a.createStereoPanner) return dest;
+    const p = a.createStereoPanner();
+    p.pan.value = pan;
+    p.connect(dest);
+    return p;
+  };
+
   const master = a.createGain();
   master.gain.setValueAtTime(0, a.currentTime);
-  master.gain.linearRampToValueAtTime(1, a.currentTime + 1.5);
+  master.gain.linearRampToValueAtTime(1, a.currentTime + 2);
   master.connect(a.destination);
 
-  const src = a.createBufferSource();
-  src.buffer = noise;
-  src.loop = true;
-  const bp = a.createBiquadFilter();
-  bp.type = "bandpass";
-  bp.frequency.value = kind === "wind" ? 500 : 350;
-  bp.Q.value = 0.8;
-  const wg = a.createGain();
-  wg.gain.value = kind === "wind" ? 0.06 : 0.025;
-  const lfo = a.createOscillator();
-  const lg = a.createGain();
-  lfo.frequency.value = 0.13;
-  lg.gain.value = 220;
-  lfo.connect(lg).connect(bp.frequency);
-  src.connect(bp).connect(wg).connect(master);
-  src.start();
-  lfo.start();
-
-  let timer: number | undefined;
-  if (kind === "night") {
-    const chirp = () => {
-      const c = ac();
-      if (!c) return;
-      const t = c.currentTime;
-      for (let i = 0; i < 3; i++) {
-        const o = c.createOscillator();
-        const g = c.createGain();
-        o.frequency.value = 4200 + Math.random() * 300;
-        g.gain.setValueAtTime(0, t + i * 0.07);
-        g.gain.linearRampToValueAtTime(0.012, t + i * 0.07 + 0.01);
-        g.gain.exponentialRampToValueAtTime(0.0001, t + i * 0.07 + 0.05);
-        o.connect(g).connect(master);
-        o.start(t + i * 0.07);
-        o.stop(t + i * 0.07 + 0.06);
-      }
-      timer = window.setTimeout(chirp, 900 + Math.random() * 1600);
+  const wind = (level: number) => {
+    const src = a.createBufferSource();
+    src.buffer = white;
+    src.loop = true;
+    const hp = a.createBiquadFilter();
+    hp.type = "highpass";
+    hp.frequency.value = 450;
+    const bp = a.createBiquadFilter();
+    bp.type = "bandpass";
+    bp.frequency.value = 1100;
+    bp.Q.value = 0.6;
+    const g = a.createGain();
+    g.gain.value = level * 0.4;
+    src.connect(hp).connect(bp).connect(g).connect(master);
+    src.start();
+    sources.push(src);
+    const gust = () => {
+      const t = a.currentTime;
+      const strength = 0.2 + Math.random() * 0.8; // irregular, never a steady swell
+      g.gain.setTargetAtTime(level * strength, t, 0.5 + Math.random() * 1.2);
+      bp.frequency.setTargetAtTime(700 + strength * 1400, t, 0.9); // stronger gust = brighter whistle
+      later(gust, 1600 + Math.random() * 3600);
     };
-    timer = window.setTimeout(chirp, 600);
+    gust();
+  };
+
+  const crickets = (level: number, muffled = false) => {
+    const out = a.createGain();
+    out.gain.value = level;
+    if (muffled) {
+      const lp = a.createBiquadFilter();
+      lp.type = "lowpass";
+      lp.frequency.value = 2600;
+      out.connect(lp).connect(master);
+    } else out.connect(master);
+    const cricket = (pitch: number, pan: number, every: number) => {
+      const dest = panner(pan, out);
+      const chirp = () => {
+        const t0 = a.currentTime + 0.02;
+        const pulses = Math.random() < 0.3 ? 4 : 3;
+        for (let i = 0; i < pulses; i++) {
+          const t = t0 + i * 0.045;
+          const o = a.createOscillator();
+          const g = a.createGain();
+          o.frequency.value = pitch;
+          g.gain.setValueAtTime(0, t);
+          g.gain.linearRampToValueAtTime(1, t + 0.006);
+          g.gain.linearRampToValueAtTime(0, t + 0.032);
+          o.connect(g).connect(dest);
+          o.start(t);
+          o.stop(t + 0.04);
+        }
+        later(chirp, every * (0.75 + Math.random() * 0.5) + (Math.random() < 0.12 ? 1800 : 0));
+      };
+      later(chirp, Math.random() * 900);
+    };
+    cricket(4400, -0.45, 780);
+    cricket(4800, 0.5, 1020);
+  };
+
+  const birds = (level: number) => {
+    const out = a.createGain();
+    out.gain.value = level;
+    out.connect(master);
+    const song = () => {
+      const dest = panner(Math.random() * 1.6 - 0.8, out);
+      const t0 = a.currentTime + 0.02;
+      const notes = 2 + Math.floor(Math.random() * 4);
+      const base = 2300 + Math.random() * 1500;
+      let t = t0;
+      for (let i = 0; i < notes; i++) {
+        const up = Math.random() < 0.5;
+        const o = a.createOscillator();
+        const g = a.createGain();
+        o.frequency.setValueAtTime(up ? base : base * 1.45, t);
+        o.frequency.exponentialRampToValueAtTime(up ? base * 1.45 : base * 0.9, t + 0.07);
+        g.gain.setValueAtTime(0, t);
+        g.gain.linearRampToValueAtTime(1, t + 0.01);
+        g.gain.exponentialRampToValueAtTime(0.001, t + 0.085);
+        o.connect(g).connect(dest);
+        o.start(t);
+        o.stop(t + 0.1);
+        t += 0.09 + Math.random() * 0.06;
+      }
+      later(song, 1100 + Math.random() * 3400);
+    };
+    later(song, 500);
+  };
+
+  switch (kind) {
+    case "night":
+      crickets(0.035);
+      wind(0.01);
+      break;
+    case "wind":
+      wind(0.035);
+      break;
+    case "cave":
+      crickets(0.022, true);
+      break;
+    case "morning":
+      birds(0.03);
+      wind(0.008);
+      break;
   }
 
   current = {
     stop: () => {
-      window.clearTimeout(timer);
+      timers.forEach((id) => window.clearTimeout(id));
       try {
         master.gain.cancelScheduledValues(a.currentTime);
         master.gain.setValueAtTime(master.gain.value, a.currentTime);
         master.gain.linearRampToValueAtTime(0, a.currentTime + 0.6);
-        window.setTimeout(() => { try { src.stop(); lfo.stop(); } catch { /* already stopped */ } }, 700);
+        window.setTimeout(() => {
+          sources.forEach((src) => {
+            try { src.stop(); } catch { /* already stopped */ }
+          });
+          master.disconnect();
+        }, 700);
       } catch { /* context closed */ }
     },
   };
@@ -176,6 +270,11 @@ export function ambience(kind: "wind" | "night" | null) {
 export function stopAllSound() {
   ambience(null);
 }
+
+// Turning sound off silences the soundscape straight away, not only new effects.
+useStore.subscribe((s, prev) => {
+  if (prev.sound && !s.sound) stopAllSound();
+});
 
 export function haptic(ms = 12) {
   try { navigator.vibrate?.(ms); } catch { /* unsupported */ }

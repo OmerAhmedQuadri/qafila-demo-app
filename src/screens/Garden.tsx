@@ -115,6 +115,7 @@ function GardenScene() {
 function Collection() {
   const cards = useStore((s) => s.cards);
   const lessonDone = useStore((s) => s.lessonDone);
+  const welcomeDone = useStore((s) => s.welcomeDone);
   return (
     <div className="grid grid-cols-2 gap-3 @2xl:grid-cols-3">
       {CARDS.map((c, i) => {
@@ -135,7 +136,7 @@ function Collection() {
                 <IconLock size={26} />
               </div>
             )}
-            {have && c.id === "thawr" && lessonDone && (
+            {have && ((c.id === "thawr" && lessonDone) || (c.id === "madinah" && welcomeDone)) && (
               <span className="absolute right-2 top-2 rounded-full bg-saffron px-2 py-0.5 font-display text-xs text-ink">New card!</span>
             )}
             <div className="p-3">

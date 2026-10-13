@@ -66,6 +66,7 @@ interface TourStep {
 function useTour(): TourStep[] {
   const go = useStore((s) => s.go);
   const openTab = useStore((s) => s.openTab);
+  const openLesson = useStore((s) => s.openLesson);
   const t = (tab: Tab) => () => openTab(tab);
   const g = (s: Screen) => () => go(s);
   return [
@@ -73,11 +74,11 @@ function useTour(): TourStep[] {
     { label: "Who's learning?", target: g("profiles"), note: "One family account, a profile per child. No personal data is collected from children (DPDP Act)." },
     { label: "Today", target: t("home"), note: "A 5-minute daily loop: one story, one dhikr, one good deed. The lantern streak lights up, and a new episode arrives every Friday." },
     { label: "Seerah journey", target: t("journey"), note: "The Seerah as a map. Locked stops are your content roadmap: each one is an episode your animation team produces." },
-    { label: "Play: The Hijrah", target: g("lesson"), note: "Story → play → check → reflect → live it. The Prophet ﷺ and the Sahaba are never shown, only places, light, objects and footprints." },
+    { label: "Play: The Hijrah", target: () => openLesson("hijrah"), note: "Story → play → check → reflect → live it. The Prophet ﷺ and the Sahaba are never shown, only places, light, objects and footprints." },
     { label: "Dhikr", target: t("dhikr"), note: "Private and gentle: no points, no leaderboards for worship. Exact Arabic with harakat, transliteration and meaning." },
     { label: "My garden", target: t("garden"), note: "Rewards as growth, not scores. Every plant remembers the lesson, dhikr or good deed that grew it." },
     { label: "Parents", target: g("parentGate"), note: "Parental gate, weekly summary, approving real-life deeds, screen-time limits, and every source with its scholar-review status." },
-    { label: "Studio (for your team)", target: g("studio"), note: "How Media Plus publishes: draft → scholar review → approved → scheduled for Friday. No developer needed." },
+    { label: "Studio (for your team)", target: g("studio"), note: "Your team's side: draft → scholar review → approved → live. Approve and publish Episode 6 here, then tap “View in the kids' app”: it's waiting on the map with a “New episode!” badge." },
   ];
 }
 

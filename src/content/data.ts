@@ -1,6 +1,6 @@
 // Journey units, dhikr phrases, collectible cards and source references (sample content).
 
-export type UnitState = "done" | "current" | "locked";
+export type UnitState = "done" | "current" | "new" | "locked";
 
 export interface Unit {
   id: string;
@@ -92,6 +92,11 @@ export const SOURCES: Source[] = [
   { id: "bukhari-2979", claim: "Asma tearing her belt to tie the food bag (Dhat an-Nitaqayn)", ref: "Sahih al-Bukhari 2979", status: "pending" },
   { id: "bukhari-3653", claim: "“What do you think of two, when Allah is the third?”", ref: "Sahih al-Bukhari 3653; Sahih Muslim 2381", status: "pending" },
   { id: "quran-9-40", claim: "“Do not be sad, indeed Allah is with us.”", ref: "Qur'an 9:40", status: "approved" },
-  { id: "bukhari-3906", claim: "People of Madinah waiting every morning; arrival at Quba; the first masjid", ref: "Sahih al-Bukhari 3906", status: "pending" },
+  { id: "bukhari-3906", claim: "People of Madinah waiting every morning; arrival at Quba; the first masjid; the camel kneeling at the site of his masjid", ref: "Sahih al-Bukhari 3906", status: "pending" },
+  { id: "bukhari-3925", claim: "“I never saw the people of Madinah happier about anything than his arrival”", ref: "Sahih al-Bukhari 3925", status: "pending" },
+  { id: "bukhari-3911", claim: "Abu Ayyub: “This is my house, and this is my door”", ref: "Sahih al-Bukhari 3911", status: "pending" },
+  { id: "bukhari-6018", claim: "“Whoever believes in Allah and the Last Day, let him honour his guest”", ref: "Sahih al-Bukhari 6018", status: "pending" },
+  { id: "muslim-854", claim: "Friday: “the best day on which the sun has risen”", ref: "Sahih Muslim 854", status: "pending" },
+  { id: "friday-sunnah", claim: "Friday sunnahs: bath and clean clothes; many salawat; Surah Al-Kahf", ref: "Sahih al-Bukhari 880; Sunan Abi Dawud 1047; al-Hakim (Al-Kahf)", status: "pending" },
   { id: "muslim-597", claim: "After-prayer tasbih: 33 / 33 / 34", ref: "Sahih Muslim 597", status: "pending" },
 ];

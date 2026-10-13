@@ -1,10 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import { useStore, streakNow } from "../../state/store";
-import { hijrahSteps, HIJRAH_TITLE } from "../../content/hijrah";
+import { useStore, streakNow, type LessonId } from "../../state/store";
+import { hijrahSteps, HIJRAH_TITLE, type Step } from "../../content/hijrah";
+import { welcomeSteps, WELCOME_TITLE } from "../../content/welcome";
 import { StoryStep, AyahCard } from "./StoryStep";
-import { ColourStep, LiveItStep, QuizStep, ReflectStep, SequenceStep, TracksGame } from "./Activities";
-import { Button, Confetti, ProgressBar, Sheet } from "../../components/ui";
+import { ChooseStep, ColourStep, LiveItStep, QuizStep, ReflectStep, SequenceStep, TracksGame } from "./Activities";
+import { Button, Confetti, ProgressBar, Rich, Sheet } from "../../components/ui";
 import { Lantern, Tamr } from "../../art/Characters";
 import { MiniScene } from "../../art/scenes/Scenes";
 import { PlantArt } from "../../art/Plants";
@@ -12,11 +13,54 @@ import { IconMute, IconSpeaker, IconX } from "../../art/Icons";
 import { ambience, sfx } from "../../lib/sound";
 import { stopSpeaking } from "../../lib/narrate";
 
-function CompleteStep() {
+interface LessonDef {
+  title: string;
+  steps: Step[];
+  card: { title: string; scene: "cave" | "madinah" };
+  plant: string;
+  carry: ReactNode;
+}
+
+/** A teaching quote card (hadith or saying), styled like the Qur'an card. */
+function QuoteCard({ text, refText }: { text: string; refText: string }) {
+  return (
+    <div className="relative overflow-hidden rounded-3xl border-2 border-saffron/60 bg-gradient-to-b from-[#2A2160] to-night p-5 text-center text-cream shadow-[0_0_40px_rgba(245,181,63,.25)]">
+      <div className="absolute inset-0 pattern-dark opacity-60" />
+      <div className="relative">
+        <div className="mb-1 text-[11px] font-extrabold tracking-[.2em] text-saffron uppercase">From the Sunnah</div>
+        <div className="font-display text-xl leading-snug">
+          <Rich text={text} />
+        </div>
+        <div className="mt-2 text-xs text-white/55">
+          <Rich text={refText} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+const LESSONS: Record<LessonId, LessonDef> = {
+  hijrah: {
+    title: HIJRAH_TITLE,
+    steps: hijrahSteps,
+    card: { title: "Cave of Thawr", scene: "cave" },
+    plant: "Palm of Trust",
+    carry: <AyahCard compact />,
+  },
+  welcome: {
+    title: WELCOME_TITLE,
+    steps: welcomeSteps,
+    card: { title: "Madinah", scene: "madinah" },
+    plant: "Palm of Welcome",
+    carry: <QuoteCard text="“Whoever believes in Allah and the Last Day, let him honour his guest.”" refText="The Prophet ﷺ · Sahih al-Bukhari 6018" />,
+  },
+};
+
+function CompleteStep({ lesson, onComplete }: { lesson: LessonDef; onComplete: () => void }) {
   const s = useStore();
   const [fire, setFire] = useState(0);
   useEffect(() => {
-    s.completeLesson();
+    onComplete();
     sfx.celebrate();
     setFire(1);
     const t = setTimeout(() => setFire(2), 1600);
@@ -34,16 +78,16 @@ function CompleteStep() {
       key: "card",
       art: (
         <div className="h-16 w-20 overflow-hidden rounded-xl ring-2 ring-saffron">
-          <MiniScene kind="cave" />
+          <MiniScene kind={lesson.card.scene} />
         </div>
       ),
-      title: "New card: Cave of Thawr",
+      title: `New card: ${lesson.card.title}`,
       text: "Added to your collection.",
     },
     {
       key: "plant",
       art: <PlantArt kind="palm" size={56} />,
-      title: "A Palm of Trust grew!",
+      title: `A ${lesson.plant} grew!`,
       text: "Go and see it in your garden.",
     },
   ];
@@ -52,42 +96,42 @@ function CompleteStep() {
     <div className="relative h-full overflow-y-auto px-5 pt-2 pb-6 text-center no-scrollbar">
       <Confetti fire={fire} />
       <div className="mx-auto flex max-w-md flex-col items-center land:grid land:min-h-full land:max-w-none land:grid-cols-2 land:content-center land:items-center land:gap-x-10 land:gap-y-5">
-      <div className="flex flex-col items-center land:col-start-1 land:row-start-1">
-      <motion.div initial={{ scale: 0.4, rotate: -10 }} animate={{ scale: 1, rotate: 0 }} transition={{ type: "spring", stiffness: 140, damping: 10 }}>
-        <Tamr size={140} mood="cheer" />
-      </motion.div>
-      <h2 className="font-display text-4xl leading-tight text-saffron @2xl:text-5xl">Masha'Allah!</h2>
-      <p className="font-display text-lg text-cream">You finished “{HIJRAH_TITLE}”</p>
-      </div>
-
-      <div className="mt-5 w-full space-y-3 land:col-start-2 land:row-start-1 land:mt-0">
-        {rewards.map((r, i) => (
-          <motion.div
-            key={r.key}
-            initial={{ opacity: 0, x: -30 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.6 + i * 0.5 }}
-            onAnimationStart={() => setTimeout(() => sfx.correct(), 600 + i * 500)}
-            className="flex items-center gap-4 rounded-2xl bg-cream p-3 text-left"
-          >
-            <div className="grid w-20 place-items-center">{r.art}</div>
-            <div>
-              <div className="font-display text-lg leading-tight text-ink">{r.title}</div>
-              <div className="text-sm text-muted">{r.text}</div>
-            </div>
+        <div className="flex flex-col items-center land:col-start-1 land:row-start-1">
+          <motion.div initial={{ scale: 0.4, rotate: -10 }} animate={{ scale: 1, rotate: 0 }} transition={{ type: "spring", stiffness: 140, damping: 10 }}>
+            <Tamr size={140} mood="cheer" />
           </motion.div>
-        ))}
-      </div>
+          <h2 className="font-display text-4xl leading-tight text-saffron @2xl:text-5xl">Masha'Allah!</h2>
+          <p className="font-display text-lg text-cream">You finished “{lesson.title}”</p>
+        </div>
 
-      <motion.div className="mt-5 w-full land:col-start-2 land:row-start-2 land:mt-0" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 2.2 }}>
-        <div className="mb-2 text-left text-[11px] font-extrabold tracking-[.2em] text-saffron uppercase">What you'll carry with you</div>
-        <AyahCard compact />
-      </motion.div>
+        <div className="mt-5 w-full space-y-3 land:col-start-2 land:row-start-1 land:mt-0">
+          {rewards.map((r, i) => (
+            <motion.div
+              key={r.key}
+              initial={{ opacity: 0, x: -30 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.6 + i * 0.5 }}
+              onAnimationStart={() => setTimeout(() => sfx.correct(), 600 + i * 500)}
+              className="flex items-center gap-4 rounded-2xl bg-cream p-3 text-left"
+            >
+              <div className="grid w-20 place-items-center">{r.art}</div>
+              <div>
+                <div className="font-display text-lg leading-tight text-ink">{r.title}</div>
+                <div className="text-sm text-muted">{r.text}</div>
+              </div>
+            </motion.div>
+          ))}
+        </div>
 
-      <div className="mt-6 grid w-full grid-cols-2 gap-3 land:col-start-1 land:row-start-2 land:mt-0 land:self-start">
-        <Button variant="ghost" onClick={() => s.openTab("home")}>Back to Today</Button>
-        <Button variant="saffron" onClick={() => s.openTab("garden")}>See my garden</Button>
-      </div>
+        <motion.div className="mt-5 w-full land:col-start-2 land:row-start-2 land:mt-0" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 2.2 }}>
+          <div className="mb-2 text-left text-[11px] font-extrabold tracking-[.2em] text-saffron uppercase">What you'll carry with you</div>
+          {lesson.carry}
+        </motion.div>
+
+        <div className="mt-6 grid w-full grid-cols-2 gap-3 land:col-start-1 land:row-start-2 land:mt-0 land:self-start">
+          <Button variant="ghost" onClick={() => s.openTab("home")}>Back to Today</Button>
+          <Button variant="saffron" onClick={() => s.openTab("garden")}>See my garden</Button>
+        </div>
       </div>
     </div>
   );
@@ -96,17 +140,24 @@ function CompleteStep() {
 export function LessonPlayer() {
   const s = useStore();
   const [confirm, setConfirm] = useState(false);
-  const last = hijrahSteps.length - 1;
-  const step = Math.min(s.lessonStep, last);
-  const cur = hijrahSteps[step];
+  const isWelcome = s.lessonId === "welcome";
+  const lesson = LESSONS[s.lessonId];
+  const progress = isWelcome
+    ? { step: s.welcomeStep, done: s.welcomeDone, set: s.setWelcomeStep, complete: s.completeWelcome }
+    : { step: s.lessonStep, done: s.lessonDone, set: s.setLessonStep, complete: s.completeLesson };
+  const last = lesson.steps.length - 1;
+  const step = Math.min(progress.step, last);
+  const cur = lesson.steps[step];
 
   // replaying a finished lesson starts from the beginning
   useEffect(() => {
-    if (s.lessonDone && s.lessonStep >= last) s.setLessonStep(0);
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+    if (progress.done && progress.step >= last) progress.set(0);
+  }, [s.lessonId]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // A soundscape for each story scene; activities stay quiet so taps and chimes are clear.
   useEffect(() => {
-    ambience(cur.kind === "complete" ? null : cur.kind === "story" && cur.scene === "madinah" ? "wind" : "night");
+    const byScene = { makkah: "night", footprints: "night", caveInside: "cave", caveEntrance: "cave", madinah: "morning", madinahStreet: "morning" } as const;
+    ambience(cur.kind === "story" ? byScene[cur.scene] : cur.kind === "tracks" ? "wind" : null);
   }, [cur]);
   useEffect(
     () => () => {
@@ -119,20 +170,21 @@ export function LessonPlayer() {
   const next = () => {
     stopSpeaking();
     sfx.whoosh();
-    s.setLessonStep(Math.min(step + 1, last));
+    progress.set(Math.min(step + 1, last));
   };
 
-  const quizIdx = hijrahSteps.slice(0, step + 1).filter((x) => x.kind === "quiz").length;
-  const quizTotal = hijrahSteps.filter((x) => x.kind === "quiz").length;
+  const quizIdx = lesson.steps.slice(0, step + 1).filter((x) => x.kind === "quiz").length;
+  const quizTotal = lesson.steps.filter((x) => x.kind === "quiz").length;
+  const key = `${s.lessonId}-${step}`;
 
   const body = (() => {
     switch (cur.kind) {
       case "story":
-        return <StoryStep key={step} scene={cur.scene} title={cur.title} lines={cur.lines} ayah={cur.ayah} onNext={next} />;
+        return <StoryStep key={key} scene={cur.scene} title={cur.title} lines={cur.lines} ayah={cur.ayah} onNext={next} />;
       case "tracks":
         return <TracksGame onNext={next} />;
       case "quiz":
-        return <QuizStep key={step} q={cur.q} options={cur.options} explain={cur.explain} n={quizIdx} total={quizTotal} onNext={next} />;
+        return <QuizStep key={key} q={cur.q} options={cur.options} explain={cur.explain} n={quizIdx} total={quizTotal} onNext={next} />;
       case "sequence":
         return <SequenceStep onNext={next} />;
       case "colour":
@@ -141,8 +193,10 @@ export function LessonPlayer() {
         return <ReflectStep onNext={next} />;
       case "liveit":
         return <LiveItStep onNext={next} />;
+      case "choose":
+        return <ChooseStep key={key} {...cur} onNext={next} />;
       case "complete":
-        return <CompleteStep />;
+        return <CompleteStep key={key} lesson={lesson} onComplete={progress.complete} />;
     }
   })();
 
@@ -171,7 +225,7 @@ export function LessonPlayer() {
       <div className="relative flex-1 overflow-hidden">
         <AnimatePresence mode="wait">
           <motion.div
-            key={step}
+            key={key}
             className="absolute inset-0"
             initial={{ opacity: 0, x: 40 }}
             animate={{ opacity: 1, x: 0 }}

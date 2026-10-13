@@ -29,6 +29,8 @@ export function Journey() {
 
   const stateOf = (u: Unit): Unit["state"] => {
     if (u.id === "hijrah") return s.lessonDone ? "done" : "current";
+    // Episode 6 unlocks the moment it is published in the Studio
+    if (u.id === "welcome") return s.welcomeDone ? "done" : s.studio.ep6 === "Live" ? "new" : "locked";
     return u.state;
   };
 
@@ -82,18 +84,26 @@ export function Journey() {
               const i = idx++;
               const st = stateOf(u);
               const offset = OFF[i % 4];
-              const fill = st === "done" ? "#1F8A85" : st === "current" ? "#F5B53F" : "#C9C3D6";
-              const shade = st === "done" ? "#136663" : st === "current" ? "#D08F1C" : "#A39CB3";
+              const fill = st === "done" ? "#1F8A85" : st === "current" ? "#F5B53F" : st === "new" ? "#F7A072" : "#C9C3D6";
+              const shade = st === "done" ? "#136663" : st === "current" ? "#D08F1C" : st === "new" ? "#D9693B" : "#A39CB3";
               return (
                 <div key={u.id} className="relative flex h-40 items-center justify-center" style={{ transform: `translateX(${offset}px)` }}>
                   <button
-                    aria-label={`${u.title}${st === "locked" ? ", locked" : st === "done" ? ", completed" : ", current lesson"}`}
+                    aria-label={`${u.title}${st === "locked" ? ", locked" : st === "done" ? ", completed" : st === "new" ? ", new episode" : ", current lesson"}`}
                     onClick={() => {
                       sfx.tap();
                       setPicked(u);
                     }}
                     className="relative transition active:translate-y-1"
                   >
+                    {st === "new" && (
+                      <>
+                        <span className="absolute inset-[-6px] rounded-full border-4 border-terracotta animate-pulse-ring" />
+                        <motion.div className="absolute -top-9 left-1/2 z-10 -translate-x-1/2 rounded-xl bg-terracotta px-3 py-1 font-display text-sm whitespace-nowrap text-cream" animate={{ y: [0, -4, 0] }} transition={{ repeat: Infinity, duration: 1.6 }}>
+                          New episode!
+                        </motion.div>
+                      </>
+                    )}
                     {st === "current" && (
                       <>
                         <span className="absolute inset-[-6px] rounded-full border-4 border-saffron animate-pulse-ring" />
@@ -146,18 +156,48 @@ export function Journey() {
                 className="w-full"
                 onClick={() => {
                   setPicked(null);
-                  s.go("lesson");
+                  s.openLesson("hijrah");
                 }}
               >
                 Start the journey
               </Button>
             )}
-            {stateOf(picked) === "done" && (
-              <p className="rounded-2xl bg-teal/10 p-3 text-teal">Completed, masha'Allah! Replays are available in the full app.</p>
+            {stateOf(picked) === "new" && (
+              <>
+                <p className="rounded-2xl bg-terracotta/10 p-3 text-terracotta-d">Just published by your team. It's ready to play!</p>
+                <Button
+                  variant="terracotta"
+                  className="w-full"
+                  onClick={() => {
+                    setPicked(null);
+                    s.openLesson("welcome");
+                  }}
+                >
+                  Play the new episode
+                </Button>
+              </>
             )}
+            {stateOf(picked) === "done" &&
+              (picked.id === "hijrah" || picked.id === "welcome" ? (
+                <>
+                  <p className="rounded-2xl bg-teal/10 p-3 text-teal">Completed, masha'Allah!</p>
+                  <Button
+                    variant="teal"
+                    className="w-full"
+                    onClick={() => {
+                      setPicked(null);
+                      s.openLesson(picked.id as "hijrah" | "welcome");
+                    }}
+                  >
+                    Play again
+                  </Button>
+                </>
+              ) : (
+                <p className="rounded-2xl bg-teal/10 p-3 text-teal">Completed, masha'Allah! Replays are available in the full app.</p>
+              ))}
             {stateOf(picked) === "locked" && (
               <p className="rounded-2xl bg-ink/5 p-3 text-muted">
-                {picked.id === "welcome" ? "Arrives this Friday, insha'Allah. Finish the Hijrah story first!" : "Unlocks as you travel along the journey."}
+                {picked.id === "welcome" ? "Your animation team is finishing this episode. It arrives next week, insha'Allah." : "Unlocks as you travel along the journey."}
               </p>
             )}
           </div>
